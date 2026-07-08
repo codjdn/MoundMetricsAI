@@ -88,7 +88,7 @@ body{
 }
 
 /* ---------- glassmorphism: shared frosted-glass treatment ---------- */
-.panel, .app-header, .mode-toggle, .upload-zone, .report-slot, .intro-card,
+.panel, .app-header, .mode-toggle, .upload-zone, .report-slot, .ws-progress, .intro-card,
 .side-col, .video-actions-bar, .help-disc, .modal, .saved-item, .progress-empty,
 .trend-card, .drill-area, .panel-topbar, .report-head, .metric-card,
 .report-priorities, .report-takeaway, .report-thumb, .filming-tips, .proc-bar,
@@ -455,8 +455,8 @@ canvas.busy{ opacity:.72; }
 .ov-focuschip #focusChipBack:hover{ filter:brightness(1.06); }
 .ov-focuschip #focusChipBack:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
 
-/* report slot — lives where the phase-progress stepper used to be. Shows a
-   prompt to run Auto-detect until a report exists, then the report itself. */
+/* report slot — sits at the top of the workspace. Shows a prompt to run
+   Auto-detect until a report exists, then the report itself. */
 .report-slot{
   flex:none; background:var(--card); border-bottom:1px solid var(--line);
   max-height:46vh; display:flex; flex-direction:column; overflow:hidden;
@@ -466,6 +466,90 @@ canvas.busy{ opacity:.72; }
 }
 .report-prompt b{ color:var(--ink); }
 .report-inline{ display:flex; flex-direction:column; min-height:0; }
+
+/* detection progress strip — one node per phase, showing which of the 4
+   Auto-detect has locked in so far. Each node IS a phase tab: click to jump
+   to that phase's committed (or live-preview) frame. */
+.ws-progress{
+  flex:none; display:flex; justify-content:center;
+  padding:8px 16px 7px; background:var(--card);
+  border-bottom:1px solid var(--line);
+}
+.ws-progress .pg-track{
+  display:flex; align-items:flex-start; width:100%; max-width:560px;
+}
+.ws-progress .pg-seg{
+  position:relative; flex:1 1 0; min-width:0;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:none; border:none; padding:2px 2px 0; margin:0; cursor:pointer;
+  font-family:inherit;
+}
+.ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:4px; border-radius:10px; }
+
+.ws-progress .pg-node{
+  position:relative; width:26px; height:26px; border-radius:50%;
+  background:var(--well); border:2px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.ws-progress .pg-seg:hover .pg-node{ border-color:var(--navy); }
+.ws-progress .pg-num{
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px;
+  color:var(--muted); transition:opacity .15s ease, transform .15s ease;
+}
+.ws-progress .pg-check{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:13px; opacity:0; transform:scale(.4);
+  transition:opacity .15s ease, transform .15s ease;
+}
+.ws-progress .pg-name{
+  font-family:'Barlow Condensed',sans-serif; font-weight:600;
+  font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); white-space:nowrap; transition:color .2s ease;
+}
+
+/* connecting rail between nodes — fills in once the phase before it is done */
+.ws-progress .pg-link{
+  flex:0 1 60px; height:2px; margin-top:12px; border-radius:2px;
+  background:var(--line); transition:background .25s ease;
+}
+.ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
+
+/* current phase */
+.ws-progress .pg-seg.current .pg-node{ border-color:var(--navy); background:#fff; box-shadow:0 0 0 4px rgba(29,58,99,.14); }
+.ws-progress .pg-seg.current .pg-num{ color:var(--navy); }
+.ws-progress .pg-seg.current .pg-name{ color:var(--ink); }
+
+/* done phase — node fills solid with a check */
+.ws-progress .pg-seg.done .pg-node{ background:var(--good); border-color:var(--good); }
+.ws-progress .pg-seg.done .pg-num{ opacity:0; transform:scale(.5); }
+.ws-progress .pg-seg.done .pg-check{ opacity:1; transform:scale(1); }
+.ws-progress .pg-seg.done .pg-name{ color:var(--good); }
+
+/* mini scan meter under the node — invisible until auto-detect sweeps through */
+.ws-progress .pg-meter{
+  position:relative; width:26px; height:3px; border-radius:99px;
+  background:var(--line); overflow:hidden; opacity:0; transition:opacity .15s ease;
+}
+.ws-progress .pg-seg.scanning .pg-meter{ opacity:1; }
+.ws-progress .pg-seg.scanning .pg-node{ border-color:var(--navy); }
+.ws-progress .pg-fill{
+  position:absolute; left:0; top:0; bottom:0; width:0;
+  background:var(--navy); transition:width .1s linear; overflow:hidden;
+}
+.ws-progress .pg-seg.scanning .pg-fill::after{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  background-size:60% 100%; background-repeat:no-repeat;
+  animation:pgShimmer 1s linear infinite;
+}
+@keyframes pgShimmer{ 0%{ background-position:-120% 0; } 100%{ background-position:240% 0; } }
+@keyframes pgPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.3); } 100%{ transform:scale(1); } }
+.ws-progress .pg-seg.justlocked .pg-node{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
+@media (prefers-reduced-motion:reduce){
+  .ws-progress .pg-seg.scanning .pg-fill::after{ animation:none; }
+  .ws-progress .pg-seg.justlocked .pg-node{ animation:none; }
+}
 
 /* first-run step intro */
 .intro-scrim{
@@ -1064,8 +1148,16 @@ canvas.busy{ opacity:.72; }
     flex:1; min-height:0; overflow:hidden;
   }
   .report-slot{ max-height:34vh; }
+  .ws-progress{ padding:5px 16px 4px; }
+  .ws-progress .pg-seg{ gap:1px; }
+  .ws-progress .pg-name{ font-size:10.5px; }
+  .ws-progress .pg-node{ width:26px; height:26px; }
+  .ws-progress .pg-link{ flex-basis:24px; height:4px; margin-top:11px; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
+}
+@media (max-width:420px){
+  .ws-progress .pg-name{ font-size:9px; letter-spacing:.02em; }
 }
 
 /* =====================================================================
@@ -1385,6 +1477,36 @@ canvas.busy{ opacity:.72; }
       </div>
     </div>
 
+    <!-- detection progress: shows which of the 4 phases Auto-detect has locked in -->
+    <div class="ws-progress" id="wsProgress">
+      <div class="pg-track" id="pgTrack">
+        <button type="button" class="pg-seg phase-tab active" data-phase="reference" aria-label="Step 1 of 4: Reference stance">
+          <span class="pg-node"><span class="pg-num">1</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Reference</span>
+        </button>
+        <span class="pg-link" aria-hidden="true"></span>
+        <button type="button" class="pg-seg phase-tab" data-phase="leglift" aria-label="Step 2 of 4: Leg lift">
+          <span class="pg-node"><span class="pg-num">2</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Leg lift</span>
+        </button>
+        <span class="pg-link" aria-hidden="true"></span>
+        <button type="button" class="pg-seg phase-tab" data-phase="footplant" aria-label="Step 3 of 4: Foot plant">
+          <span class="pg-node"><span class="pg-num">3</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Foot plant</span>
+        </button>
+        <span class="pg-link" aria-hidden="true"></span>
+        <button type="button" class="pg-seg phase-tab" data-phase="release" aria-label="Step 4 of 4: Release">
+          <span class="pg-node"><span class="pg-num">4</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Release</span>
+        </button>
+      </div>
+      <span class="sr-only" id="pgCount" aria-live="polite">0 / 4 frames marked</span>
+    </div>
+
     <div class="ws-body">
       <!-- ---------- video stage ---------- -->
       <div class="video-col" id="videoCol">
@@ -1441,8 +1563,10 @@ canvas.busy{ opacity:.72; }
         </div>
       </div>
 
-      <!-- ---------- side rail ---------- -->
-      <aside class="side-col" id="sideCol">
+      <!-- ---------- side rail: hidden — its per-phase explainer scroll has
+           been retired in favor of the report; kept in the DOM only so the
+           existing checklist/coach JS has elements to write into. ---------- -->
+      <aside class="side-col hidden" id="sideCol">
         <div class="rail-scroll">
           <div class="rail-head">
             <h2 id="railPhaseTitle">Reference</h2>
@@ -1987,6 +2111,7 @@ canvas.busy{ opacity:.72; }
   const scrub     = document.getElementById('scrub');
   const timeLabel = document.getElementById('timeLabel');
 
+  const phaseTabs   = document.querySelectorAll('.phase-tab');
   const phaseInstr  = document.getElementById('phaseInstructions');
   const frameNote   = document.getElementById('frameNote');
   const checklist = document.getElementById('checklist');
@@ -1997,6 +2122,8 @@ canvas.busy{ opacity:.72; }
   const coachTitle = document.getElementById('coachTitle');
   const coachSub   = document.getElementById('coachSub');
   const coachCollapse = document.getElementById('coachCollapse');
+  const pgCount    = document.getElementById('pgCount');
+  const pgSegs     = document.querySelectorAll('#pgTrack .pg-seg');
   const focusChip  = document.getElementById('focusChip');
   const focusChipBack = document.getElementById('focusChipBack');
   const introScrim   = document.getElementById('introScrim');
@@ -2929,9 +3056,14 @@ canvas.busy{ opacity:.72; }
   // ===============================================================
   // Phase / landmark UI
   // ===============================================================
+  phaseTabs.forEach(tab => {
+    tab.addEventListener('click', () => setPhase(tab.dataset.phase));
+  });
+
   function setPhase(phase){
     state.currentPhase = phase;
 
+    phaseTabs.forEach(t => t.classList.toggle('active', t.dataset.phase === phase));
     phaseInstr.textContent = PHASE_TEXT[phase];
     if(railPhaseTitle) railPhaseTitle.textContent = PHASE_LABEL[phase];
     if(railPhaseNum)   railPhaseNum.textContent = 'Phase ' + PHASE_INDEX[phase] + ' / 4';
@@ -2978,7 +3110,7 @@ canvas.busy{ opacity:.72; }
       // All four phases committed — redirect attention to Generate report.
       coachStep.textContent = '\u2713';
       coachTitle.textContent = 'All phases marked!';
-      coachSub.innerHTML = 'Tap <b>Generate report</b> to see your delivery analysis.';
+      coachSub.innerHTML = 'Your delivery report is ready above.';
     } else if(marked){
       coachStep.textContent = PHASE_INDEX[phase];
       coachTitle.textContent = PHASE_LABEL[phase];
@@ -2990,11 +3122,41 @@ canvas.busy{ opacity:.72; }
     }
   }
 
-  // Reveal the auto-detected frames one phase at a time: commit each pick and
-  // briefly flash its frame on the canvas, so the user watches the four
-  // phases lock in rather than appearing all at once. Returns # committed.
+  function updateProgress(){
+    const done = PHASE_ORDER.filter(p => state.phases[p].time !== null).length;
+    if(pgCount) pgCount.textContent = done + ' / 4';
+    pgSegs.forEach(seg => {
+      const p = seg.dataset.phase;
+      seg.classList.toggle('done', state.phases[p].time !== null);
+      seg.classList.toggle('current', p === state.currentPhase && state.phases[p].time === null);
+    });
+  }
+  // ===============================================================
+  // AUTO-DETECT VISUALIZATION
+  // ===============================================================
+  // Drive the four progress bars as one sweeping meter while auto-detect scans
+  // the clip (progress 0→1). Because the phases occur in time order, the fill
+  // moves through the delivery left→right as the model works.
+  function setScanSweep(progress){
+    if(pgCount) pgCount.textContent = 'Scanning…';
+    pgSegs.forEach((seg, k) => {
+      seg.classList.add('scanning');
+      seg.classList.remove('done','current');
+      const fill = seg.querySelector('.pg-fill');
+      if(fill) fill.style.width = (clamp(progress*4 - k, 0, 1) * 100) + '%';
+    });
+  }
+
+  // Reveal the auto-detected frames one phase at a time: commit each pick, flash
+  // its frame on the canvas, and pop its bar to "done" so the user watches the
+  // four phases lock in rather than appearing all at once. Returns # committed.
   async function revealAutoPicks(finals){
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    pgSegs.forEach(seg => {
+      seg.classList.remove('scanning');
+      const fill = seg.querySelector('.pg-fill');
+      if(fill) fill.style.width = '0%';
+    });
     let committed = 0;
     for(let k = 0; k < PHASE_ORDER.length; k++){
       const phase = PHASE_ORDER[k];
@@ -3006,8 +3168,17 @@ canvas.busy{ opacity:.72; }
         lm: s.lm
       };
       committed++;
+      const seg = pgSegs[k];
+      if(seg){
+        seg.classList.add('done');
+        if(!reduce){
+          seg.classList.add('justlocked');
+          setTimeout(() => seg.classList.remove('justlocked'), 440);
+        }
+      }
+      if(pgCount) pgCount.textContent = committed + ' / 4';
       if(!reduce){
-        // Briefly show this phase's detected frame as it locks in.
+        // Briefly show this phase's detected frame while its bar pops.
         state.currentPhase = phase;
         previewActive = false;
         liveLm = null;
@@ -3068,6 +3239,7 @@ canvas.busy{ opacity:.72; }
       const pct = Math.round((i / N) * 100);
       canvasBusy.textContent = 'Scanning ' + pct + '%';
       autoDetectLabel.textContent = 'Scanning… ' + pct + '%';
+      setScanSweep(i / N);
     }
     canvasBusy.textContent = 'Detecting…';   // restore for normal marking
 
@@ -3418,6 +3590,8 @@ canvas.busy{ opacity:.72; }
     });
 
     if(checklistCount) checklistCount.textContent = placedHere + ' / ' + list.length;
+
+    updateProgress();
   }
 
   // ===============================================================
