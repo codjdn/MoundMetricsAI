@@ -173,11 +173,11 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .mode-toggle{
   justify-self:center; position:relative;
   background:var(--well); border:1px solid var(--line);
-  border-radius:9px; padding:4px; display:flex; gap:3px;
+  border-radius:10px; padding:5px; display:flex; gap:4px;
 }
 .mode-toggle-indicator{
-  position:absolute; top:4px; left:0; height:calc(100% - 8px);
-  width:0; border-radius:6px; pointer-events:none; z-index:0;
+  position:absolute; top:5px; left:0; height:calc(100% - 10px);
+  width:0; border-radius:7px; pointer-events:none; z-index:0;
   background:linear-gradient(135deg, var(--navy), var(--navy-deep));
   box-shadow:0 2px 8px rgba(20,33,58,.35), inset 0 1px 0 rgba(255,255,255,.2);
   transform:translateX(0);
@@ -188,9 +188,9 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .mode-toggle-btn{
   position:relative; z-index:1;
   background:transparent; border:none; color:var(--muted);
-  border-radius:6px; padding:8px 18px;
+  border-radius:7px; padding:10px 21px; line-height:1.15;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:14px; letter-spacing:.08em; text-transform:uppercase;
+  font-size:14.5px; letter-spacing:.08em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap;
   transition:color .18s ease;
 }
@@ -598,17 +598,17 @@ canvas.busy{ opacity:.72; }
 .ov-playbar #playBtn{
   width:44px; height:44px; padding:0; min-width:44px;
   border-radius:50%;
-  background:radial-gradient(circle at 33% 28%, #ffffff 0%, #f0f1f3 60%, #dfe2e7 100%);
+  background:radial-gradient(circle at 33% 28%, #e4ffa0 0%, var(--trace) 62%, #a9d936 100%);
+  backdrop-filter:none;
   border:1px solid rgba(255,255,255,.7);
   color:var(--stage);
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 4px 16px rgba(0,0,0,.45), 0 0 0 4px rgba(200,245,66,.10), inset 0 1px 1px rgba(255,255,255,.9);
+  box-shadow:0 4px 16px rgba(0,0,0,.45), 0 0 22px 8px rgba(200,245,66,.32), 0 0 0 4px rgba(200,245,66,.14), inset 0 1px 1px rgba(255,255,255,.9);
   transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, background .2s ease;
 }
 .ov-playbar #playBtn:hover{
   transform:scale(1.08);
-  background:radial-gradient(circle at 33% 28%, #e4ffa0 0%, var(--trace) 62%, #a9d936 100%);
-  box-shadow:0 4px 18px rgba(0,0,0,.5), 0 0 0 7px rgba(200,245,66,.18), inset 0 1px 1px rgba(255,255,255,.7);
+  box-shadow:0 4px 18px rgba(0,0,0,.5), 0 0 28px 10px rgba(200,245,66,.42), 0 0 0 7px rgba(200,245,66,.18), inset 0 1px 1px rgba(255,255,255,.7);
 }
 .ov-playbar #playBtn:active{ transform:scale(0.92); }
 .ov-playbar #playBtn:focus-visible{ outline:2px solid var(--trace); outline-offset:3px; }
