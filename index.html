@@ -363,7 +363,7 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 .video-col{ flex:1; min-width:0; display:flex; flex-direction:column; background:var(--stage); position:relative; }
 
 .canvas-wrap{ position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-canvas{ width:100%; height:100%; object-fit:contain; display:block; cursor:default; touch-action:none; }
+canvas{ height:100%; width:auto; object-fit:cover; display:block; cursor:default; touch-action:none; }
 canvas.busy{ opacity:.72; }
 .canvas-busy{
   position:absolute; top:12px; left:12px; z-index:6;
@@ -459,7 +459,7 @@ canvas.busy{ opacity:.72; }
    prompt to run Auto-detect until a report exists, then the report itself. */
 .report-slot{
   flex:none; background:var(--card); border-top:1px solid var(--line);
-  max-height:46vh; display:flex; flex-direction:column; overflow:hidden;
+  max-height:49vh; display:flex; flex-direction:column; overflow:hidden;
 }
 .report-prompt{
   padding:14px 20px; text-align:center; font-size:13.5px; color:var(--muted);
@@ -472,7 +472,7 @@ canvas.busy{ opacity:.72; }
    to that phase's committed (or live-preview) frame. */
 .ws-progress{
   flex:none; display:flex; justify-content:center;
-  padding:8px 16px 7px; background:var(--card);
+  padding:5px 16px 4px; background:var(--card);
   border-bottom:1px solid var(--line);
 }
 .ws-progress .pg-track{
@@ -480,14 +480,14 @@ canvas.busy{ opacity:.72; }
 }
 .ws-progress .pg-seg{
   position:relative; flex:1 1 0; min-width:0;
-  display:flex; flex-direction:column; align-items:center; gap:4px;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
   background:none; border:none; padding:2px 2px 0; margin:0; cursor:pointer;
   font-family:inherit;
 }
 .ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:4px; border-radius:10px; }
 
 .ws-progress .pg-node{
-  position:relative; width:26px; height:26px; border-radius:50%;
+  position:relative; width:22px; height:22px; border-radius:50%;
   background:var(--well); border:2px solid var(--line);
   display:flex; align-items:center; justify-content:center;
   transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
@@ -510,7 +510,7 @@ canvas.busy{ opacity:.72; }
 
 /* connecting rail between nodes — fills in once the phase before it is done */
 .ws-progress .pg-link{
-  flex:0 1 60px; height:2px; margin-top:12px; border-radius:2px;
+  flex:0 1 60px; height:2px; margin-top:10px; border-radius:2px;
   background:var(--line); transition:background .25s ease;
 }
 .ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
@@ -528,7 +528,7 @@ canvas.busy{ opacity:.72; }
 
 /* mini scan meter under the node — invisible until auto-detect sweeps through */
 .ws-progress .pg-meter{
-  position:relative; width:26px; height:3px; border-radius:99px;
+  position:relative; width:22px; height:3px; border-radius:99px;
   background:var(--line); overflow:hidden; opacity:0; transition:opacity .15s ease;
 }
 .ws-progress .pg-seg.scanning .pg-meter{ opacity:1; }
@@ -1147,12 +1147,13 @@ canvas.busy{ opacity:.72; }
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
-  .report-slot{ max-height:34vh; }
-  .ws-progress{ padding:5px 16px 4px; }
+  .report-slot{ max-height:36vh; }
+  .ws-progress{ padding:4px 16px 3px; }
   .ws-progress .pg-seg{ gap:1px; }
   .ws-progress .pg-name{ font-size:10.5px; }
-  .ws-progress .pg-node{ width:26px; height:26px; }
-  .ws-progress .pg-link{ flex-basis:24px; height:4px; margin-top:11px; }
+  .ws-progress .pg-node{ width:22px; height:22px; }
+  .ws-progress .pg-meter{ width:22px; }
+  .ws-progress .pg-link{ flex-basis:24px; height:4px; margin-top:9px; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
