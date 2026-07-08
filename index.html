@@ -563,6 +563,33 @@ canvas.busy{ opacity:.72; }
 .intro-skip:hover{ color:var(--ink); }
 .intro-skip:focus-visible{ outline:2px solid var(--navy); }
 
+/* in-app confirm — same glass card as the "?" steps popup, but viewport-fixed
+   so it can appear over any screen (workspace, setup, saved list) */
+.confirm-scrim{
+  position:fixed; inset:0; z-index:90;
+  background:rgba(20,33,58,.55); backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; padding:22px;
+}
+.confirm-card{ max-width:400px; }
+.confirm-card .intro-actions{ margin-top:2px; }
+/* optional text field, used where the browser's prompt() was before */
+#confirmInput{
+  width:100%; background:var(--field-bg); border:1px solid var(--line); color:var(--ink);
+  border-radius:var(--radius); padding:10px; font-family:'Barlow',sans-serif; font-size:14px;
+  margin:-6px 0 16px;
+}
+#confirmInput:focus{ outline:2px solid var(--navy); outline-offset:1px; }
+/* destructive confirms swap the go-button to seam red */
+.confirm-card.danger .intro-eyebrow{ color:var(--red); }
+.confirm-card.danger #confirmOkBtn{
+  background:linear-gradient(135deg, var(--red), #9B0C24);
+}
+.confirm-card.danger #confirmOkBtn:hover:not(:disabled){
+  background:linear-gradient(135deg, #9B0C24, #7E0A1E);
+  box-shadow:0 3px 10px rgba(200,16,46,.28), inset 0 1px 0 rgba(255,255,255,.16);
+}
+
 /* header back button (workspace only) */
 .back-btn{
   background:linear-gradient(165deg, rgba(255,255,255,.4), rgba(255,255,255,.2)); border:1px solid var(--line); color:var(--muted);
@@ -656,6 +683,21 @@ canvas.busy{ opacity:.72; }
 }
 .video-actions-bar > *{ flex:1 1 0; max-width:220px; align-self:stretch; text-align:center; padding:8px 18px; font-size:14px; }
 
+/* Auto-detect — the hero action: a richer navy gradient with a lit top edge
+   and a soft green under-glow so it never reads as greyed out or inactive. */
+#autoDetectBtn{
+  background:linear-gradient(135deg, #2E568D 0%, var(--navy) 45%, var(--navy-deep) 100%);
+  box-shadow:0 3px 12px rgba(29,58,99,.35), 0 5px 20px rgba(74,222,128,.22),
+             inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.08);
+}
+#autoDetectBtn:hover:not(:disabled){
+  background:linear-gradient(135deg, #365F99 0%, var(--navy) 40%, var(--navy-deep) 100%);
+  box-shadow:0 5px 16px rgba(29,58,99,.4), 0 7px 24px rgba(74,222,128,.3),
+             inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+}
+/* busy ("Scanning… 42%") keeps its full color — the live label is the signal */
+#autoDetectBtn:disabled{ opacity:.8; cursor:progress; }
+
 /* collapsible help */
 .help-disc{ border:1px solid var(--line); border-radius:var(--radius-md); margin-bottom:14px; background:var(--well-grad); overflow:hidden; }
 .help-disc summary{
@@ -704,16 +746,27 @@ canvas.busy{ opacity:.72; }
 .checklist-foot .swatch{ display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; margin:0 3px 0 6px; }
 
 .save-btn-wrapper{
-  flex:1; background:transparent; border:1.5px solid var(--line); color:var(--ink);
+  flex:1; background:linear-gradient(165deg, rgba(255,255,255,.94), rgba(255,255,255,.6));
+  border:1.5px solid var(--navy); color:var(--navy);
   border-radius:var(--radius); padding:11px 8px;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
   font-size:13.5px; letter-spacing:.07em; text-transform:uppercase;
   cursor:pointer; display:flex; align-items:center; justify-content:center;
-  gap:8px; transition:border-color .15s ease; position:relative;
+  gap:8px; position:relative;
+  box-shadow:0 2px 8px rgba(20,33,58,.12), inset 0 1px 0 rgba(255,255,255,.85);
+  transition:border-color .15s ease, color .15s ease, transform .12s ease, box-shadow .15s ease, background .15s ease;
 }
-.save-btn-wrapper:hover{ border-color:var(--navy); color:var(--navy); }
+.save-btn-wrapper:hover:not(:disabled){
+  border-color:var(--navy-deep); color:var(--navy-deep);
+  background:linear-gradient(165deg, #fff, rgba(255,255,255,.78));
+  transform:translateY(-1px);
+  box-shadow:0 4px 14px rgba(20,33,58,.18), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.save-btn-wrapper:active:not(:disabled){ transform:translateY(0); box-shadow:0 1px 4px rgba(20,33,58,.14); }
 .save-btn-wrapper:focus-visible{ outline:2px solid var(--navy); }
-.save-btn-wrapper:disabled{ opacity:.4; cursor:not-allowed; }
+/* busy ("Saving…") keeps its full color so the bar never reads as dead —
+   only the cursor and a slight dim signal the wait */
+.save-btn-wrapper:disabled{ opacity:.75; cursor:progress; }
 .save-label{ flex:1; }
 
 .save-error-icon{
@@ -822,9 +875,9 @@ canvas.busy{ opacity:.72; }
 /* trend cards */
 .trend-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; }
 .trend-card{ background:var(--glass-grad); border:1px solid var(--line-light); border-radius:var(--radius-lg); padding:14px 16px; box-shadow:var(--glass-shadow); }
-.trend-card.improving{ border-left:3px solid var(--good); }
-.trend-card.regressing{ border-left:3px solid var(--flag); }
-.trend-card.flat{ border-left:3px solid var(--line); }
+.trend-card.improving{ border-left:3px solid var(--good); border-right:3px solid var(--good); }
+.trend-card.regressing{ border-left:3px solid var(--flag); border-right:3px solid var(--flag); }
+.trend-card.flat{ border-left:3px solid var(--line); border-right:3px solid var(--line); }
 .trend-card-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:4px; }
 .trend-card-head h4{ font-family:'Barlow',sans-serif; font-weight:600; font-size:13.5px; }
 .trend-delta{ font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; }
@@ -861,7 +914,7 @@ canvas.busy{ opacity:.72; }
 }
 .drill-item .d-name{ font-family:'Barlow',sans-serif; font-weight:600; font-size:13.5px; }
 .drill-item .d-why{ font-size:12.5px; color:var(--muted); }
-.progress-all-good{ background:var(--good-soft); border:1px solid #BFDECB; border-left:3px solid var(--good); border-radius:var(--radius-lg); padding:16px 18px; color:var(--muted); font-size:13.5px; }
+.progress-all-good{ background:var(--good-soft); border:1px solid #BFDECB; border-left:3px solid var(--good); border-right:3px solid var(--good); border-radius:var(--radius-lg); padding:16px 18px; color:var(--muted); font-size:13.5px; }
 .progress-all-good strong{ color:var(--good); }
 
 #progressPanel, #drillsPanel{
@@ -976,7 +1029,7 @@ canvas.busy{ opacity:.72; }
   transition:border-color .15s ease, box-shadow .15s ease, transform .25s cubic-bezier(.2,.8,.2,1);
 }
 .metric-card:hover{ border-color:#B9C4D4; box-shadow:0 3px 12px rgba(20,33,58,.08); }
-.metric-card.flagged{ border-left:3px solid var(--flag); }
+.metric-card.flagged{ border-left:3px solid var(--flag); border-right:3px solid var(--flag); }
 
 /* focused = the card currently shown on the video; pops forward a touch and
    sits above its neighbors, but never leaves the report-scroll box, so it
@@ -1087,7 +1140,7 @@ canvas.busy{ opacity:.72; }
 
 /* top priorities */
 .report-priorities{
-  background:var(--glass-grad); border:1px solid var(--line); border-left:3px solid var(--flag);
+  background:var(--glass-grad); border:1px solid var(--line); border-left:3px solid var(--flag); border-right:3px solid var(--flag);
   border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:20px;
   box-shadow:0 1px 2px rgba(20,33,58,.05);
 }
@@ -1116,7 +1169,7 @@ canvas.busy{ opacity:.72; }
 .metric-note{ font-size:12px; color:var(--muted); line-height:1.45; }
 
 .report-takeaway{
-  background:var(--glass-grad); border:1px solid var(--line); border-left:3px solid var(--navy);
+  background:var(--glass-grad); border:1px solid var(--line); border-left:3px solid var(--navy); border-right:3px solid var(--navy);
   border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:20px;
   box-shadow:0 1px 2px rgba(20,33,58,.05);
 }
@@ -1127,7 +1180,7 @@ canvas.busy{ opacity:.72; }
 }
 .report-takeaway .tk-title{ font-family:'Barlow',sans-serif; font-weight:600; font-size:15px; margin-bottom:4px; }
 .report-takeaway .tk-body{ font-size:12.5px; color:var(--muted); }
-.report-takeaway.all-good{ border-left-color:var(--good); }
+.report-takeaway.all-good{ border-left-color:var(--good); border-right-color:var(--good); }
 .report-takeaway.all-good .tk-label{ color:var(--good); }
 
 .disclaimer{ font-size:12.5px; color:var(--muted); border-top:1px solid var(--line); padding-top:18px; margin-bottom:18px; }
@@ -1137,7 +1190,7 @@ canvas.busy{ opacity:.72; }
 /* ---------- first-visit notice banner ---------- */
 .notice-banner{
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-  background:var(--flag-soft); border:1px solid #EBD2A6; border-left:3px solid var(--flag);
+  background:var(--flag-soft); border:1px solid #EBD2A6; border-left:3px solid var(--flag); border-right:3px solid var(--flag);
   border-radius:var(--radius-lg); padding:13px 16px; margin-bottom:22px;
   font-size:13.5px; color:var(--ink);
 }
@@ -1230,7 +1283,7 @@ canvas.busy{ opacity:.72; }
   }
   .app-header,
   #progressPanel, #drillsPanel,
-  #cropModalOverlay, #saveModalOverlay,
+  #cropModalOverlay, #saveModalOverlay, #confirmScrim,
   #setupPanel, #processingPanel{
     display:none !important;
   }
@@ -1272,21 +1325,21 @@ canvas.busy{ opacity:.72; }
   .report-summary{ color:#1b1b1b !important; }
   .report-summary .count{ color:#1D3A63 !important; }
 
-  .report-takeaway{ background:#F4F6FA !important; border:1px solid #C9D4E4 !important; border-left:3px solid #1D3A63 !important; color:#1b1b1b !important; break-inside:avoid; box-shadow:none !important; }
+  .report-takeaway{ background:#F4F6FA !important; border:1px solid #C9D4E4 !important; border-left:3px solid #1D3A63 !important; border-right:3px solid #1D3A63 !important; color:#1b1b1b !important; break-inside:avoid; box-shadow:none !important; }
   .report-takeaway .tk-label{ color:#1D3A63 !important; }
   .report-takeaway .tk-title{ color:#1b1b1b !important; }
   .report-takeaway .tk-body{ color:#444 !important; }
-  .report-takeaway.all-good{ border-left-color:#1E7B4D !important; }
+  .report-takeaway.all-good{ border-left-color:#1E7B4D !important; border-right-color:#1E7B4D !important; }
   .report-takeaway.all-good .tk-label{ color:#1E7B4D !important; }
 
-  .report-priorities{ background:#fff !important; border:1px solid #cfcfcf !important; border-left:3px solid #A85B00 !important; break-inside:avoid; box-shadow:none !important; }
+  .report-priorities{ background:#fff !important; border:1px solid #cfcfcf !important; border-left:3px solid #A85B00 !important; border-right:3px solid #A85B00 !important; break-inside:avoid; box-shadow:none !important; }
 
   .report-grid{ display:block !important; }
   .metric-card{
     background:#fff !important; border:1px solid #cfcfcf !important;
     box-shadow:none !important; break-inside:avoid; margin-bottom:10px;
   }
-  .metric-card.flagged{ border-left:3px solid #A85B00 !important; background:#fff !important; }
+  .metric-card.flagged{ border-left:3px solid #A85B00 !important; border-right:3px solid #A85B00 !important; background:#fff !important; }
   .metric-head h3{ color:#1b1b1b !important; }
   .gauge-value{ color:#1b1b1b !important; }
   .metric-card.flagged .gauge-value{ color:#A85B00 !important; }
@@ -1793,6 +1846,21 @@ canvas.busy{ opacity:.72; }
   </div>
 </div>
 
+<!-- in-app confirm dialog: replaces window.confirm so prompts match the
+     "?" steps popup instead of the browser's native message box -->
+<div class="confirm-scrim hidden" id="confirmScrim">
+  <div class="intro-card confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="intro-eyebrow" id="confirmEyebrow">Just checking</div>
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p class="intro-lead" id="confirmBody"></p>
+    <input type="text" id="confirmInput" class="hidden" maxlength="60" aria-labelledby="confirmTitle">
+    <div class="intro-actions">
+      <button class="primary-btn" id="confirmOkBtn">Continue</button>
+      <button class="intro-skip" id="confirmCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -2188,12 +2256,17 @@ canvas.busy{ opacity:.72; }
 
   if(backToMenuBtn){
     backToMenuBtn.addEventListener('click', () => {
-      if(window.confirm('Go back to the main menu? Any unsaved changes will remain in the session but you can lose context. Use "Save" first to keep your work.')) {
+      appConfirm({
+        title: 'Back to the main menu?',
+        body: 'Any unsaved changes will remain in the session but you can lose context. Use "Save" first to keep your work.',
+        confirmLabel: 'Go back'
+      }).then(ok => {
+        if(!ok) return;
         workspacePanel.classList.add('hidden');
         document.body.classList.remove('mode-workspace');
         setupPanel.classList.remove('hidden');
         window.scrollTo({ top:0, behavior:'smooth' });
-      }
+      });
     });
   }
 
@@ -2577,6 +2650,69 @@ canvas.busy{ opacity:.72; }
     introStartBtn.focus();
   });
 
+  // ===============================================================
+  // In-app confirm — same glass card as the "?" steps popup, replacing
+  // window.confirm everywhere. Resolves true on confirm, false on
+  // cancel / Escape / clicking the scrim.
+  // ===============================================================
+  const confirmScrim     = document.getElementById('confirmScrim');
+  const confirmCard      = confirmScrim.querySelector('.confirm-card');
+  const confirmEyebrowEl = document.getElementById('confirmEyebrow');
+  const confirmTitleEl   = document.getElementById('confirmTitle');
+  const confirmBodyEl    = document.getElementById('confirmBody');
+  const confirmOkBtn     = document.getElementById('confirmOkBtn');
+  const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+  const confirmInputEl   = document.getElementById('confirmInput');
+  let confirmResolve = null;
+  let confirmReturnFocus = null;
+  let confirmHasInput = false;
+
+  // With `input` set, this also stands in for window.prompt: resolves the typed
+  // string on confirm, or null on cancel. Without it, resolves true / false.
+  function appConfirm(opts){
+    const o = opts || {};
+    // If a confirm is somehow already open, cancel it before showing the new one.
+    if(confirmResolve) settleConfirm(false);
+    confirmEyebrowEl.textContent = o.danger ? 'Careful' : 'Just checking';
+    confirmTitleEl.textContent   = o.title || 'Are you sure?';
+    confirmBodyEl.textContent    = o.body || '';
+    confirmBodyEl.classList.toggle('hidden', !o.body);
+    confirmOkBtn.textContent     = o.confirmLabel || 'Continue';
+    confirmCancelBtn.textContent = o.cancelLabel || 'Cancel';
+    confirmCard.classList.toggle('danger', !!o.danger);
+    confirmHasInput = !!o.input;
+    confirmInputEl.classList.toggle('hidden', !confirmHasInput);
+    if(confirmHasInput){
+      confirmInputEl.value = o.input.value || '';
+      confirmInputEl.placeholder = o.input.placeholder || '';
+      confirmInputEl.maxLength = o.input.maxlength || 60;
+    }
+    confirmReturnFocus = document.activeElement;
+    confirmScrim.classList.remove('hidden');
+    if(confirmHasInput){ confirmInputEl.focus(); confirmInputEl.select(); }
+    else confirmOkBtn.focus();
+    return new Promise(resolve => { confirmResolve = resolve; });
+  }
+  function settleConfirm(ok){
+    if(!confirmResolve) return;
+    confirmScrim.classList.add('hidden');
+    const resolve = confirmResolve;
+    confirmResolve = null;
+    if(confirmReturnFocus && confirmReturnFocus.focus) confirmReturnFocus.focus();
+    confirmReturnFocus = null;
+    resolve(confirmHasInput ? (ok ? confirmInputEl.value : null) : ok);
+  }
+  confirmOkBtn.addEventListener('click', () => settleConfirm(true));
+  confirmCancelBtn.addEventListener('click', () => settleConfirm(false));
+  confirmScrim.addEventListener('click', (e) => { if(e.target === confirmScrim) settleConfirm(false); });
+  confirmInputEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); settleConfirm(true); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if(confirmScrim.classList.contains('hidden')) return;
+    if(e.key === 'Escape'){ e.preventDefault(); settleConfirm(false); }
+  });
+
   // Back button to return to upload screen.
   // We do NOT call switchToMode('setup') here because that function has an
   // early-return guard when currentMode is already 'setup' (i.e. we're in
@@ -2584,7 +2720,12 @@ canvas.busy{ opacity:.72; }
   const backToUploadBtn = document.getElementById('backToUploadBtn');
   if(backToUploadBtn){
     backToUploadBtn.addEventListener('click', () => {
-      if(window.confirm('Go back to choose a video? Your marked frames stay in the session, but motion tracking will stop. Use "Save" first to keep your work.')){
+      appConfirm({
+        title: 'Go back to choose a video?',
+        body: 'Your marked frames stay in the session, but motion tracking will stop. Use "Save" first to keep your work.',
+        confirmLabel: 'Go back'
+      }).then(ok => {
+        if(!ok) return;
         // Reset detected flag so the workspace tab shows upload, not workspace
         state.detected = false;
         // Directly show setup, hiding everything else
@@ -2598,7 +2739,7 @@ canvas.busy{ opacity:.72; }
         currentMode = 'setup';
         updateModeToggleButtons('setup');
         window.scrollTo({ top:0, behavior:'smooth' });
-      }
+      });
     });
   }
 
@@ -3210,7 +3351,11 @@ canvas.busy{ opacity:.72; }
 
     // Don't clobber manual work without asking.
     const anyMarked = PHASE_ORDER.some(p => state.phases[p].time !== null);
-    if(anyMarked && !window.confirm('Auto-detect will replace the frames you’ve already marked with its own suggestions. Continue?')){
+    if(anyMarked && !(await appConfirm({
+      title: 'Replace your marked frames?',
+      body: 'Auto-detect will replace the frames you’ve already marked with its own suggestions.',
+      confirmLabel: 'Run auto-detect'
+    }))){
       return;
     }
 
@@ -4491,9 +4636,14 @@ canvas.busy{ opacity:.72; }
   }
 
   restartBtn.addEventListener('click', () => {
-    if(window.confirm('Start over with a new video? Anything not saved will be lost.')){
-      window.location.reload();
-    }
+    appConfirm({
+      title: 'Start over with a new video?',
+      body: 'Anything not saved will be lost.',
+      confirmLabel: 'Start over',
+      danger: true
+    }).then(ok => {
+      if(ok) window.location.reload();
+    });
   });
 
   // ===============================================================
@@ -4728,26 +4878,45 @@ canvas.busy{ opacity:.72; }
   if(drillsAthleteSelect)   drillsAthleteSelect.addEventListener('change', () => onAthleteFilterChange(drillsAthleteSelect));
 
   if(newAthleteBtn) newAthleteBtn.addEventListener('click', () => {
-    const name = (window.prompt('New athlete name:', '') || '').trim();
-    if(!name) return;
-    dbAddAthlete(name)
-      .then(id => { setCurrentAthlete(id); return refreshAthletes(); })
-      .then(() => refreshSavedList());
+    appConfirm({
+      title: 'New athlete',
+      confirmLabel: 'Add',
+      input: { value: '', placeholder: 'e.g. Jordan M.', maxlength: 40 }
+    }).then(val => {
+      const name = (val || '').trim();
+      if(!name) return;
+      dbAddAthlete(name)
+        .then(id => { setCurrentAthlete(id); return refreshAthletes(); })
+        .then(() => refreshSavedList());
+    });
   });
   if(renameAthleteBtn) renameAthleteBtn.addEventListener('click', () => {
     if(!isRealAthleteSelected()) return;
     const id = state.currentAthleteId;
-    const name = (window.prompt('Rename athlete:', athleteName(id)) || '').trim();
-    if(!name) return;
-    dbRenameAthlete(id, name).then(refreshAthletes).then(() => refreshSavedList());
+    appConfirm({
+      title: 'Rename athlete',
+      confirmLabel: 'Rename',
+      input: { value: athleteName(id), maxlength: 40 }
+    }).then(val => {
+      const name = (val || '').trim();
+      if(!name) return;
+      dbRenameAthlete(id, name).then(refreshAthletes).then(() => refreshSavedList());
+    });
   });
   if(deleteAthleteBtn) deleteAthleteBtn.addEventListener('click', () => {
     if(!isRealAthleteSelected()) return;
     const id = state.currentAthleteId;
-    if(!window.confirm('Delete “' + athleteName(id) + '” and ALL of their saved analyses? This can’t be undone.')) return;
-    dbDeleteAthlete(id)
-      .then(() => { setCurrentAthlete('all'); return refreshAthletes(); })
-      .then(() => refreshSavedList());
+    appConfirm({
+      title: 'Delete this athlete?',
+      body: 'Delete “' + athleteName(id) + '” and ALL of their saved analyses? This can’t be undone.',
+      confirmLabel: 'Delete',
+      danger: true
+    }).then(ok => {
+      if(!ok) return;
+      dbDeleteAthlete(id)
+        .then(() => { setCurrentAthlete('all'); return refreshAthletes(); })
+        .then(() => refreshSavedList());
+    });
   });
 
   function refreshSavedList(){
@@ -4813,9 +4982,14 @@ canvas.busy{ opacity:.72; }
     if(btn.classList.contains('load-btn')){
       loadSavedRecord(id);
     } else if(btn.classList.contains('delete-btn')){
-      if(window.confirm('Delete this saved analysis? This can\u2019t be undone.')){
-        dbDelete(id).then(refreshSavedList);
-      }
+      appConfirm({
+        title: 'Delete this saved analysis?',
+        body: 'This can\u2019t be undone.',
+        confirmLabel: 'Delete',
+        danger: true
+      }).then(ok => {
+        if(ok) dbDelete(id).then(refreshSavedList);
+      });
     }
   });
 
@@ -5302,6 +5476,7 @@ canvas.busy{ opacity:.72; }
       if(cropModalOverlay && !cropModalOverlay.classList.contains('hidden')) return true;
       if(saveModalOverlay && !saveModalOverlay.classList.contains('hidden')) return true;
       if(introScrim && !introScrim.classList.contains('hidden')) return true;
+      if(confirmScrim && !confirmScrim.classList.contains('hidden')) return true;
       if(target && target.closest && target.closest('input[type=range], .crop-line, .modal-overlay')) return true;
       return false;
     }
