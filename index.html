@@ -42,26 +42,32 @@
 *{ box-sizing:border-box; margin:0; padding:0; }
 
 :root{
-  /* scouting-report palette: navy ink on cool paper, stitch-red accent */
-  --paper:#EDF0F4;        /* page background */
-  --card:#FFFFFF;         /* panels */
-  --well:#F5F7FA;         /* inset fields */
+  /* scouting-report palette: navy ink on cool paper, stitch-red accent —
+     rendered as frosted glass floating over a soft gradient field */
+  --paper:#EDF0F4;        /* page background (gradient base) */
+  --card:rgba(255,255,255,.6);       /* panels — translucent glass */
+  --well:rgba(255,255,255,.36);      /* inset fields — translucent glass */
+  --field-bg:rgba(255,255,255,.78);  /* form controls — a touch more opaque for legibility */
   --ink:#14213A;          /* primary text */
   --muted:#5C6B84;        /* secondary text */
-  --line:#D7DDE6;         /* hairlines */
+  --line:rgba(20,33,58,.14);         /* hairlines — soft on glass */
+  --line-light:rgba(255,255,255,.65);/* highlight edge on glass */
   --navy:#1D3A63;         /* primary action */
   --navy-deep:#152C4C;
   --red:#C8102E;          /* seam red — used sparingly */
   --good:#1E7B4D;         /* in range */
-  --good-soft:#E4F2EA;
+  --good-soft:rgba(228,242,234,.68);
   --flag:#A85B00;         /* worth a look */
-  --flag-soft:#FBEFDD;
+  --flag-soft:rgba(251,239,221,.68);
   --stage:#0C1017;        /* video stage */
   --stage-glass:rgba(13,17,25,.78);
   --stage-line:rgba(255,255,255,.16);
   --trace:#C8F542;        /* skeleton tracer on video */
   --header-h:52px;
   --radius:8px;
+  --glass-blur:blur(22px) saturate(180%);
+  --glass-blur-soft:blur(13px) saturate(160%);
+  --glass-shadow:0 8px 30px rgba(20,33,58,.14), inset 0 1px 0 rgba(255,255,255,.5);
   /* the seam: a slanted red stitch used as the app's one decorative motif */
   --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
 }
@@ -70,10 +76,27 @@ html,body{ height:100%; overflow:hidden; touch-action:manipulation; }
 
 body{
   font-family:'Barlow',system-ui,sans-serif;
-  background:var(--paper);
+  background:
+    radial-gradient(1100px 760px at 12% -8%, rgba(29,58,99,.24), transparent 58%),
+    radial-gradient(900px 640px at 108% 6%, rgba(200,16,46,.13), transparent 55%),
+    radial-gradient(760px 900px at 46% 118%, rgba(30,123,77,.13), transparent 60%),
+    linear-gradient(165deg, #EEF1F6 0%, #E7EBF2 45%, #DEE4EE 100%);
+  background-attachment:fixed;
   color:var(--ink);
   line-height:1.55;
   -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- glassmorphism: shared frosted-glass treatment ---------- */
+.panel, .app-header, .mode-toggle, .upload-zone, .ws-progress, .intro-card,
+.side-col, .video-actions-bar, .help-disc, .modal, .saved-item, .progress-empty,
+.trend-card, .drill-area, .panel-topbar, .report-head, .metric-card,
+.report-priorities, .report-takeaway, .report-thumb, .filming-tips, .proc-bar,
+.notice-banner, .saved-item-actions button, .athlete-mini-btn, .ghost-btn,
+.back-btn, .field-select, input[type=number], .modal input[type=text],
+.seg-btn, .report-scrim, .modal-overlay, .report-drawer{
+  backdrop-filter:var(--glass-blur-soft);
+  -webkit-backdrop-filter:var(--glass-blur-soft);
 }
 
 .app{
@@ -116,7 +139,7 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .panel{
   background:var(--card); border:1px solid var(--line);
   border-radius:12px; padding:26px; margin-bottom:24px;
-  box-shadow:0 1px 2px rgba(20,33,58,.05);
+  box-shadow:var(--glass-shadow);
 }
 
 /* =====================================================================
@@ -127,8 +150,9 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
   height:var(--header-h);
   display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px;
   padding:0 18px;
-  background:var(--card);
+  background:linear-gradient(180deg, rgba(255,255,255,.74), rgba(255,255,255,.52));
   border-bottom:1px solid var(--line);
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 6px 24px rgba(20,33,58,.08);
 }
 .app-header .hdr-brand{
   font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.03em;
@@ -154,7 +178,8 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .mode-toggle-indicator{
   position:absolute; top:4px; left:0; height:calc(100% - 8px);
   width:0; border-radius:6px; pointer-events:none; z-index:0;
-  background:var(--navy);
+  background:linear-gradient(135deg, var(--navy), var(--navy-deep));
+  box-shadow:0 2px 8px rgba(20,33,58,.35), inset 0 1px 0 rgba(255,255,255,.2);
   transform:translateX(0);
   transition:transform .28s cubic-bezier(.4,.01,.2,1), width .28s cubic-bezier(.4,.01,.2,1);
   opacity:0;
@@ -181,17 +206,24 @@ body.mode-workspace .hdr-ws-only{ display:inline-flex !important; }
   .app-header{ padding:0 12px; gap:8px; }
   .app-header .hdr-brand small{ display:none; }
   .app-header .hdr-brand{ font-size:16px; }
-  .mode-toggle-btn{ padding:8px 12px; font-size:13px; letter-spacing:.05em; }
+  .mode-toggle{ padding:3px; gap:2px; }
+  .mode-toggle-btn{ padding:7px 11px; font-size:12.5px; letter-spacing:.04em; }
 }
 @media (max-width:520px){
   .app-header{ padding:0 10px; gap:6px; }
   .app-header .hdr-brand{ font-size:12px; letter-spacing:.02em; }
-  .mode-toggle-btn{ padding:7px 9px; }
+  .mode-toggle-btn{ padding:6px 8px; font-size:11.5px; letter-spacing:.02em; }
   .back-btn{ padding:7px 8px; }
   .back-btn .back-btn-label{ display:none; }
 }
 @media (max-width:400px){
-  .mode-toggle-btn{ padding:6px 7px; font-size:11.5px; letter-spacing:.03em; }
+  .mode-toggle{ padding:2px; gap:1px; }
+  .mode-toggle-btn{ padding:5px 6px; font-size:10.5px; letter-spacing:0; }
+}
+@media (max-width:340px){
+  .app-header{ gap:4px; }
+  .app-header .hdr-brand{ font-size:11px; }
+  .mode-toggle-btn{ padding:5px 5px; font-size:9.5px; }
 }
 
 /* ---------- setup ---------- */
@@ -224,13 +256,13 @@ body.mode-workspace .hdr-ws-only{ display:inline-flex !important; }
 .height-row span{ color:var(--muted); font-size:13px; }
 
 input[type=number]{
-  background:var(--card); border:1px solid var(--line); color:var(--ink);
+  background:var(--field-bg); border:1px solid var(--line); color:var(--ink);
   border-radius:6px; padding:9px 10px; font-family:'IBM Plex Mono',monospace; font-size:14px; width:64px;
 }
 input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 
 .field-select{
-  background:var(--card); border:1px solid var(--line); color:var(--ink);
+  background:var(--field-bg); border:1px solid var(--line); color:var(--ink);
   border-radius:6px; padding:9px 10px; font-family:'Barlow',sans-serif; font-size:14px;
   width:100%; cursor:pointer; transition:border-color .18s ease;
 }
@@ -239,14 +271,14 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 
 .seg{ display:flex; gap:6px; }
 .seg-btn{
-  flex:1; background:var(--card); border:1px solid var(--line); color:var(--muted);
+  flex:1; background:var(--field-bg); border:1px solid var(--line); color:var(--muted);
   border-radius:6px; padding:10px;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
   letter-spacing:.08em; text-transform:uppercase; font-size:14px; cursor:pointer;
   transition:color .15s ease, border-color .15s ease, background .15s ease;
 }
 .seg-btn:hover{ border-color:var(--navy); color:var(--ink); }
-.seg-btn.active{ border-color:var(--navy); color:#fff; background:var(--navy); }
+.seg-btn.active{ border-color:var(--navy); color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep)); box-shadow:inset 0 1px 0 rgba(255,255,255,.2); }
 .seg-btn:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
 
 .filming-tips{ background:var(--well); border:1px solid var(--line); border-radius:8px; padding:14px 16px; font-size:13px; color:var(--muted); }
@@ -259,14 +291,14 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 .filming-tips li{ margin-bottom:4px; }
 
 .primary-btn{
-  background:var(--navy); color:#fff; border:none; border-radius:var(--radius);
+  background:linear-gradient(135deg, var(--navy), var(--navy-deep)); color:#fff; border:none; border-radius:var(--radius);
   font-family:'Barlow Condensed',sans-serif; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
   font-size:15.5px; padding:13px 24px; cursor:pointer; align-self:flex-start;
   transition:background .15s ease, transform .12s ease, box-shadow .15s ease;
-  box-shadow:0 1px 2px rgba(20,33,58,.2);
+  box-shadow:0 1px 2px rgba(20,33,58,.2), inset 0 1px 0 rgba(255,255,255,.16);
 }
 .primary-btn:disabled{ opacity:.4; cursor:not-allowed; }
-.primary-btn:hover:not(:disabled){ background:var(--navy-deep); transform:translateY(-1px); box-shadow:0 3px 10px rgba(20,33,58,.22); }
+.primary-btn:hover:not(:disabled){ background:linear-gradient(135deg, var(--navy-deep), #0F2038); transform:translateY(-1px); box-shadow:0 3px 10px rgba(20,33,58,.22), inset 0 1px 0 rgba(255,255,255,.16); }
 .primary-btn:active:not(:disabled){ transform:translateY(0); box-shadow:0 1px 2px rgba(20,33,58,.2); }
 .primary-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
 
@@ -558,14 +590,14 @@ canvas.busy{ opacity:.72; }
 
 /* header back button (workspace only) */
 .back-btn{
-  background:transparent; border:1px solid var(--line); color:var(--muted);
+  background:rgba(255,255,255,.22); border:1px solid var(--line); color:var(--muted);
   border-radius:6px; padding:8px 13px;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
   font-size:13px; letter-spacing:.06em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; flex:none;
   transition:border-color .15s, color .15s, background .15s;
 }
-.back-btn:hover{ border-color:var(--red); color:var(--red); background:#FBEEF0; }
+.back-btn:hover{ border-color:var(--red); color:var(--red); background:rgba(251,238,240,.65); }
 .back-btn:focus-visible{ outline:2px solid var(--red); outline-offset:2px; }
 
 /* =====================================================================
@@ -718,22 +750,22 @@ canvas.busy{ opacity:.72; }
 .save-error-tooltip:hover{ opacity:1; pointer-events:auto; }
 
 .ghost-btn{
-  flex:1; background:transparent; border:1.5px solid var(--line); color:var(--ink);
+  flex:1; background:rgba(255,255,255,.24); border:1.5px solid var(--line); color:var(--ink);
   border-radius:var(--radius); padding:11px 8px;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
   font-size:13.5px; letter-spacing:.07em; text-transform:uppercase; cursor:pointer;
-  transition:border-color .15s ease, color .15s ease;
+  transition:border-color .15s ease, color .15s ease, background .15s ease;
 }
-.ghost-btn:hover{ border-color:var(--navy); color:var(--navy); }
+.ghost-btn:hover{ border-color:var(--navy); color:var(--navy); background:rgba(255,255,255,.42); }
 .ghost-btn:focus-visible{ outline:2px solid var(--navy); }
 .ghost-btn:disabled{ opacity:.4; cursor:not-allowed; }
 
 /* ---------- modals ---------- */
 .modal-overlay{ position:fixed; inset:0; background:rgba(20,33,58,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:80; }
-.modal{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; max-width:380px; width:100%; box-shadow:0 18px 50px rgba(20,33,58,.25); }
+.modal{ background:var(--card); border:1px solid var(--line-light); border-radius:12px; padding:22px; max-width:380px; width:100%; box-shadow:0 18px 50px rgba(20,33,58,.25), inset 0 1px 0 rgba(255,255,255,.5); }
 .modal h3{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; text-transform:uppercase; letter-spacing:.02em; margin-bottom:10px; }
 .modal p{ font-size:13px; color:var(--muted); margin-bottom:14px; }
-.modal input[type=text]{ width:100%; background:var(--card); border:1px solid var(--line); color:var(--ink); border-radius:6px; padding:10px; font-family:'Barlow',sans-serif; font-size:14px; margin-bottom:16px; }
+.modal input[type=text]{ width:100%; background:var(--field-bg); border:1px solid var(--line); color:var(--ink); border-radius:6px; padding:10px; font-family:'Barlow',sans-serif; font-size:14px; margin-bottom:16px; }
 .modal input[type=text]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 .modal-actions{ display:flex; justify-content:flex-end; gap:10px; }
 .modal-actions .ghost-btn{ flex:none; padding:10px 18px; }
@@ -805,7 +837,7 @@ canvas.busy{ opacity:.72; }
 
 /* trend cards */
 .trend-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; }
-.trend-card{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; box-shadow:0 1px 2px rgba(20,33,58,.05); }
+.trend-card{ background:var(--card); border:1px solid var(--line-light); border-radius:10px; padding:14px 16px; box-shadow:var(--glass-shadow); }
 .trend-card.improving{ border-left:3px solid var(--good); }
 .trend-card.regressing{ border-left:3px solid var(--flag); }
 .trend-card.flat{ border-left:3px solid var(--line); }
@@ -824,7 +856,7 @@ canvas.busy{ opacity:.72; }
 .spark .dot.last{ fill:#fff; opacity:1; stroke:var(--navy); stroke-width:1.5; }
 
 /* drill recommendations */
-.drill-area{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(20,33,58,.05); }
+.drill-area{ background:var(--card); border:1px solid var(--line-light); border-radius:10px; padding:16px 18px; margin-bottom:14px; box-shadow:var(--glass-shadow); }
 .drill-area-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
 .drill-area-head h4{
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
@@ -879,6 +911,11 @@ canvas.busy{ opacity:.72; }
   font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
 }
 .panel-topbar .athlete-topbar .field-select{ width:auto; min-width:150px; }
+@media (max-width:480px){
+  .panel-topbar{ flex-wrap:wrap; row-gap:10px; padding:14px 16px; }
+  .panel-topbar .athlete-topbar{ margin-left:0; width:100%; }
+  .panel-topbar .athlete-topbar .field-select{ flex:1; min-width:0; }
+}
 
 .panel-content{
   flex:1; min-height:0; overflow-y:auto;
@@ -911,8 +948,8 @@ canvas.busy{ opacity:.72; }
    ===================================================================== */
 .report-drawer{
   position:fixed; top:0; right:0; height:100vh; height:100dvh; width:min(560px, 92vw);
-  background:var(--paper); border-left:1px solid var(--line); z-index:70;
-  display:flex; flex-direction:column; box-shadow:-12px 0 40px rgba(20,33,58,.22);
+  background:rgba(237,240,244,.82); border-left:1px solid var(--line-light); z-index:70;
+  display:flex; flex-direction:column; box-shadow:-12px 0 40px rgba(20,33,58,.22), inset 1px 0 0 rgba(255,255,255,.4);
   transform:translateX(100%); transition:transform .28s ease;
 }
 .report-drawer.open{ transform:translateX(0); }
@@ -954,9 +991,9 @@ canvas.busy{ opacity:.72; }
   background:var(--card);
   border-radius:10px;
   padding:16px 18px 14px;
-  border:1px solid var(--line);
+  border:1px solid var(--line-light);
   position:relative;
-  box-shadow:0 1px 2px rgba(20,33,58,.05);
+  box-shadow:var(--glass-shadow);
   transition:border-color .15s ease, box-shadow .15s ease;
 }
 .metric-card:hover{ border-color:#B9C4D4; box-shadow:0 3px 12px rgba(20,33,58,.08); }
@@ -1086,8 +1123,8 @@ canvas.busy{ opacity:.72; }
 .ov-coach.all-done .coach-step{ background:var(--good); color:#fff; }
 .ov-coach.all-done .coach-title{ color:#8CD9AC; }
 
-.primary-btn.report-glow{ box-shadow:0 0 0 2px rgba(30,123,77,.35), 0 2px 10px rgba(30,123,77,.25); background:var(--good); }
-.primary-btn.report-glow:hover:not(:disabled){ background:#186541; }
+.primary-btn.report-glow{ box-shadow:0 0 0 2px rgba(30,123,77,.35), 0 2px 10px rgba(30,123,77,.25); background:linear-gradient(135deg, var(--good), #145C39); }
+.primary-btn.report-glow:hover:not(:disabled){ background:linear-gradient(135deg, #186541, #0F4A2B); }
 
 /* =====================================================================
    REPORT — print header / frame thumbnails
@@ -1212,6 +1249,19 @@ canvas.busy{ opacity:.72; }
   .disclaimer strong{ color:#1b1b1b !important; }
   .actions{ display:none !important; }
   .metric-jump{ display:none !important; }
+}
+
+/* =====================================================================
+   SWIPE PAGE TRANSITIONS — Workspace / Progress / Drills
+   A tab switch (by tap or swipe) plays a short directional slide so a
+   swipe gesture reads as physically moving between adjacent pages.
+   ===================================================================== */
+@keyframes pageSlideFromRight{ from{ transform:translateX(26px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
+@keyframes pageSlideFromLeft{ from{ transform:translateX(-26px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
+.page-slide-right{ animation:pageSlideFromRight .32s cubic-bezier(.2,.7,.3,1); }
+.page-slide-left{ animation:pageSlideFromLeft .32s cubic-bezier(.2,.7,.3,1); }
+@media (prefers-reduced-motion: reduce){
+  .page-slide-right, .page-slide-left{ animation:none !important; }
 }
 
 </style>
@@ -5103,11 +5153,27 @@ canvas.busy{ opacity:.72; }
     drillsPanel.classList.add('hidden');
   }
 
+  // Tab order for swipe navigation + directional slide transitions.
+  const MODE_ORDER = ['setup', 'analysis', 'drills'];
+
+  // Plays a short slide-in so the page that's becoming visible appears to
+  // arrive from the direction you'd expect (matches a left/right swipe).
+  function animatePageIn(el, fromMode, toMode){
+    if(!el) return;
+    const fromIdx = MODE_ORDER.indexOf(fromMode);
+    const toIdx = MODE_ORDER.indexOf(toMode);
+    el.classList.remove('page-slide-left', 'page-slide-right');
+    if(fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+    void el.offsetWidth; // restart animation if the class was just removed
+    el.classList.add(toIdx > fromIdx ? 'page-slide-right' : 'page-slide-left');
+  }
+
   function switchToMode(mode){
     if(mode === currentMode && mode !== 'analysis' && mode !== 'drills'){
       // re-tapping the workspace tab is a no-op; analysis/drills re-render
       return;
     }
+    const fromMode = currentMode;
 
     if(mode === 'setup'){
       // Delivery Workspace tab. If a video has already been processed this
@@ -5117,9 +5183,11 @@ canvas.busy{ opacity:.72; }
       if(state.detected){
         workspacePanel.classList.remove('hidden');
         document.body.classList.add('mode-workspace');
+        animatePageIn(workspacePanel, fromMode, mode);
       }else{
         document.body.classList.remove('mode-workspace');
         setupPanel.classList.remove('hidden');
+        animatePageIn(setupPanel, fromMode, mode);
       }
       updateModeToggleButtons('setup');
       currentMode = 'setup';
@@ -5130,6 +5198,7 @@ canvas.busy{ opacity:.72; }
       document.body.classList.remove('mode-workspace','page-drills');
       document.body.classList.add('page-analysis');
       progressPanel.classList.remove('hidden');
+      animatePageIn(progressPanel, fromMode, mode);
       renderTrends();
       updateModeToggleButtons('analysis');
       currentMode = 'analysis';
@@ -5140,6 +5209,7 @@ canvas.busy{ opacity:.72; }
       document.body.classList.remove('mode-workspace','page-analysis');
       document.body.classList.add('page-drills');
       drillsPanel.classList.remove('hidden');
+      animatePageIn(drillsPanel, fromMode, mode);
       renderDrills();
       updateModeToggleButtons('drills');
       currentMode = 'drills';
@@ -5150,6 +5220,60 @@ canvas.busy{ opacity:.72; }
   if(modeToggleSetup) modeToggleSetup.addEventListener('click', () => switchToMode('setup'));
   if(modeToggleAnalysis) modeToggleAnalysis.addEventListener('click', () => switchToMode('analysis'));
   if(modeToggleDrills) modeToggleDrills.addEventListener('click', () => switchToMode('drills'));
+
+  // ===============================================================
+  // Swipe navigation — swipe left/right anywhere on the page to move
+  // between Workspace / Progress / Drills. There's no continuous drag
+  // preview: a swipe either commits to the adjacent tab or is ignored,
+  // so it always resolves to one of the three pages, never in between.
+  // ===============================================================
+  (function initSwipeNav(){
+    const SWIPE_THRESHOLD = 56;  // px of horizontal travel required to commit
+    const AXIS_LOCK = 10;        // px of travel before we decide the gesture's axis
+    let startX = 0, startY = 0, axis = null, tracking = false;
+
+    function swipeBlocked(target){
+      if(reportPanel && reportPanel.classList.contains('open')) return true;
+      if(cropModalOverlay && !cropModalOverlay.classList.contains('hidden')) return true;
+      if(saveModalOverlay && !saveModalOverlay.classList.contains('hidden')) return true;
+      if(introScrim && !introScrim.classList.contains('hidden')) return true;
+      if(target && target.closest && target.closest('input[type=range], .crop-line, .modal-overlay')) return true;
+      return false;
+    }
+
+    document.addEventListener('touchstart', (e) => {
+      if(e.touches.length !== 1 || swipeBlocked(e.target)){ tracking = false; return; }
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      axis = null;
+      tracking = true;
+    }, { passive:true });
+
+    document.addEventListener('touchmove', (e) => {
+      if(!tracking || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if(axis === null){
+        if(Math.abs(dx) < AXIS_LOCK && Math.abs(dy) < AXIS_LOCK) return;
+        axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+      }
+      if(axis === 'x' && e.cancelable) e.preventDefault();
+    }, { passive:false });
+
+    document.addEventListener('touchend', (e) => {
+      if(!tracking) return;
+      tracking = false;
+      if(axis !== 'x') return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if(Math.abs(dx) < SWIPE_THRESHOLD) return;
+      const idx = MODE_ORDER.indexOf(currentMode);
+      if(idx === -1) return;
+      if(dx < 0 && idx < MODE_ORDER.length - 1) switchToMode(MODE_ORDER[idx + 1]);
+      else if(dx > 0 && idx > 0) switchToMode(MODE_ORDER[idx - 1]);
+    }, { passive:true });
+
+    document.addEventListener('touchcancel', () => { tracking = false; axis = null; }, { passive:true });
+  })();
 
   // Place the sliding indicator under the initially-active tab once fonts/layout
   // settle, and keep it aligned if the toggle reflows (resize / font load).
