@@ -375,49 +375,7 @@ canvas.busy{ opacity:.72; }
 .ov{ position:absolute; z-index:5; transition:opacity .2s ease; }
 .video-col.playing .ov.ov-autohide{ opacity:0; pointer-events:none; }
 
-/* the coach banner — current instruction, collapsible into a "pullout tab", pinned top-left */
-.ov-coach{
-  top:10px; left:14px;
-  display:flex; align-items:flex-start; gap:11px;
-  background:var(--stage-glass); backdrop-filter:blur(7px);
-  border:1px solid var(--stage-line); border-left:3px solid var(--trace);
-  border-radius:9px; padding:9px 13px; width:min(300px, calc(100% - 28px));
-  box-shadow:0 6px 22px rgba(0,0,0,.38);
-  transition:width .22s ease, padding .22s ease;
-}
-.ov-coach.is-marked{ border-left-color:var(--good); }
-.ov-coach .coach-step{
-  flex:none; width:26px; height:26px; border-radius:50%;
-  background:var(--trace); color:var(--stage);
-  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px;
-  display:flex; align-items:center; justify-content:center;
-}
-.ov-coach.is-marked .coach-step{ background:var(--good); color:#fff; }
-.ov-coach .coach-text{ min-width:0; flex:1; }
-.ov-coach .coach-title{
-  font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:14px; letter-spacing:.06em; text-transform:uppercase;
-  color:#fff; line-height:1.2;
-}
-.ov-coach .coach-sub{ font-size:12px; color:rgba(255,255,255,.68); line-height:1.35; margin-top:1px; }
-.ov-coach .coach-sub b{ color:var(--trace); font-weight:600; }
-.ov-coach.is-marked .coach-sub b{ color:#8CD9AC; }
-
-.coach-collapse{
-  flex:none; width:22px; height:22px; margin:-2px -4px 0 0;
-  background:transparent; border:1px solid var(--stage-line); border-radius:6px;
-  color:rgba(255,255,255,.6); cursor:pointer; line-height:1;
-  display:flex; align-items:center; justify-content:center;
-  transition:border-color .15s, color .15s, transform .22s ease;
-}
-.coach-collapse:hover{ border-color:#fff; color:#fff; }
-.coach-collapse:focus-visible{ outline:2px solid var(--trace); }
-.coach-collapse .cc-icon{ font-size:15px; font-weight:700; }
-.ov-coach.collapsed{ width:auto; padding:7px 9px; gap:8px; }
-.ov-coach.collapsed .coach-text{ display:none; }
-.ov-coach.collapsed .coach-collapse{ transform:rotate(180deg); }
-
-/* the "?" help button — pinned top-right, mirrors the pullout coach tab */
+/* the "?" help button — pinned top-right */
 .ov-help{
   top:10px; right:14px;
   width:34px; height:34px; border-radius:9px;
@@ -970,14 +928,13 @@ canvas.busy{ opacity:.72; }
   flex:none; display:flex; align-items:center; gap:12px; padding:8px 20px;
   border-bottom:1px solid var(--line); background:var(--card);
   position:relative;
-  transition:margin-top .3s cubic-bezier(.4,0,.2,1), box-shadow .2s ease;
+  transition:box-shadow .2s ease;
 }
 .report-head::after{ content:''; position:absolute; left:20px; bottom:-2px; width:64px; height:3px; background:var(--seam); transition:opacity .15s ease; }
-/* Scrolling the report down tucks the header out of view (via negative
-   margin, so .report-scroll's flex:1 immediately claims the freed space);
-   scrolling back up — even a little — brings it straight back. See the
-   scroll listener near reportPanel in the script for the direction logic. */
-.report-head.rh-hidden{ margin-top:calc(-1 * var(--rh-h, 46px)); }
+/* Scrolling the report tracks the header 1:1 (via negative margin-top set
+   directly per scroll tick, no CSS transition — see initReportHeaderAutoHide
+   in the script), so it tucks away and reappears at exactly the rate the
+   user scrolls, and .report-scroll's flex:1 claims the freed space as it goes. */
 .report-head.rh-hidden::after{ opacity:0; }
 .report-head.rh-elevated{ box-shadow:0 3px 10px rgba(20,33,58,.14); }
 .report-head h2{
@@ -1128,11 +1085,6 @@ canvas.busy{ opacity:.72; }
 
 .actions{ display:flex; gap:10px; flex-wrap:wrap; }
 .actions .ghost-btn{ flex:none; padding:10px 18px; }
-
-/* all-phases-done states */
-.ov-coach.all-done{ border-left-color:var(--good); border-color:rgba(140,217,172,.5); }
-.ov-coach.all-done .coach-step{ background:var(--good); color:#fff; }
-.ov-coach.all-done .coach-title{ color:#8CD9AC; }
 
 /* =====================================================================
    REPORT — print header / frame thumbnails
@@ -1472,21 +1424,8 @@ canvas.busy{ opacity:.72; }
             <button type="button" id="focusChipBack">◂ Back to report</button>
           </div>
 
-          <!-- help button: top-right, mirrors the pullout coach tab pinned top-left -->
+          <!-- help button: top-right -->
           <button class="ov ov-help ov-autohide" id="showStepsBtn" type="button" title="Show the steps" aria-label="Show the steps">?</button>
-
-          <!-- running instruction: the one thing to do right now — the "pullout tab".
-               Collapses into a small tab so it never blocks the pitcher. -->
-          <div class="ov ov-coach ov-autohide" id="ovCoach">
-            <span class="coach-step" id="coachStep">1</span>
-            <div class="coach-text">
-              <div class="coach-title" id="coachTitle">Reference stance</div>
-              <div class="coach-sub" id="coachSub"></div>
-            </div>
-            <button class="coach-collapse" id="coachCollapse" type="button" aria-expanded="true" aria-label="Collapse instructions" title="Collapse">
-              <span class="cc-icon" aria-hidden="true">‹</span>
-            </button>
-          </div>
 
           <!-- editing toolbar removed from video overlay; actions now live in the side rail -->
 
@@ -1960,15 +1899,6 @@ canvas.busy{ opacity:.72; }
     release: "The frame where the ball leaves the hand. Used for shoulder tilt, trunk lean, throwing-elbow extension, hip drive, and front-leg bracing. Only the throwing arm is tracked here."
   };
 
-  // One-line "find this moment" prompts for the always-visible coach banner.
-  // Kept short on purpose — the full detail lives in the rail.
-  const PHASE_COACH = {
-    reference: "Find an upright, still frame before the leg lift",
-    leglift:   "Find the top of the leg lift — front knee highest",
-    footplant: "Find the frame the front foot first lands",
-    release:   "Find the frame the ball leaves the hand"
-  };
-
   // MediaPipe BlazePose landmark indices
   const MP = {
     NOSE:0, L_EYE:2, R_EYE:5, L_EAR:7, R_EAR:8,
@@ -2123,11 +2053,6 @@ canvas.busy{ opacity:.72; }
   const checklist = document.getElementById('checklist');
 
   // new guidance elements
-  const ovCoach    = document.getElementById('ovCoach');
-  const coachStep  = document.getElementById('coachStep');
-  const coachTitle = document.getElementById('coachTitle');
-  const coachSub   = document.getElementById('coachSub');
-  const coachCollapse = document.getElementById('coachCollapse');
   const pgCount    = document.getElementById('pgCount');
   const pgSegs     = document.querySelectorAll('#pgTrack .pg-seg');
   const focusChip  = document.getElementById('focusChip');
@@ -2152,7 +2077,7 @@ canvas.busy{ opacity:.72; }
   const railPhaseNum   = document.getElementById('railPhaseNum');
   const checklistCount = document.getElementById('checklistCount');
 
-  // Short human labels used for the coach banner / rail title
+  // Short human labels used for the rail title
   const PHASE_LABEL = { reference:'Reference', leglift:'Peak leg lift', footplant:'Foot plant', release:'Release' };
   const PHASE_INDEX = { reference:1, leglift:2, footplant:3, release:4 };
 
@@ -3098,34 +3023,6 @@ canvas.busy{ opacity:.72; }
     }
 
     updateChecklist();
-    updateCoach();
-  }
-
-  // ===============================================================
-  // Coach banner + progress strip — keep "what to do now" in plain sight.
-  // ===============================================================
-  function updateCoach(){
-    const phase = state.currentPhase;
-    const marked = state.phases[phase].time !== null;
-    const allDone = PHASE_ORDER.every(p => state.phases[p].time !== null);
-
-    ovCoach.classList.toggle('is-marked', marked);
-    ovCoach.classList.toggle('all-done', allDone);
-
-    if(allDone){
-      // All four phases committed — redirect attention to Generate report.
-      coachStep.textContent = '\u2713';
-      coachTitle.textContent = 'All phases marked!';
-      coachSub.innerHTML = 'Your delivery report is ready above.';
-    } else if(marked){
-      coachStep.textContent = PHASE_INDEX[phase];
-      coachTitle.textContent = PHASE_LABEL[phase];
-      coachSub.innerHTML = 'Marked. Move to the next phase, or run <b>Auto-detect</b> again if it looks off.';
-    } else {
-      coachStep.textContent = PHASE_INDEX[phase];
-      coachTitle.textContent = PHASE_LABEL[phase];
-      coachSub.innerHTML = PHASE_COACH[phase] + '. Tap <b>Auto-detect</b> below to lock in all four phases.';
-    }
   }
 
   function updateProgress(){
@@ -3511,7 +3408,6 @@ canvas.busy{ opacity:.72; }
     liveLm = null;
     setPhase('reference');         // seek back to Reference; 'seeked' redraws
     updateChecklist();
-    updateCoach();
 
     frameNote.textContent = (committed === 0)
       ? 'Auto-detect couldn’t read the body — try a clearer, closer side-view clip.'
@@ -3532,16 +3428,6 @@ canvas.busy{ opacity:.72; }
   }
 
   if(autoDetectBtn) autoDetectBtn.addEventListener('click', () => { autoDetectPhases(); });
-
-  // Collapse / expand the on-video instruction box so it never blocks the motion.
-  if(coachCollapse){
-    coachCollapse.addEventListener('click', () => {
-      const collapsed = ovCoach.classList.toggle('collapsed');
-      coachCollapse.setAttribute('aria-expanded', String(!collapsed));
-      coachCollapse.setAttribute('aria-label', collapsed ? 'Expand instructions' : 'Collapse instructions');
-      coachCollapse.title = collapsed ? 'Expand' : 'Collapse';
-    });
-  }
 
   // ===============================================================
   // FOCUS MODE — Click a metric card to jump to its frame + annotation
@@ -4352,31 +4238,42 @@ canvas.busy{ opacity:.72; }
     // Always start the report at the top, even if it was scrolled previously.
     const rs = reportPanel.querySelector('.report-scroll');
     if(rs) rs.scrollTop = 0;
-    const rh = reportPanel.querySelector('.report-head');
-    if(rh) rh.classList.remove('rh-hidden');
+    resetReportHeaderOffset();
   }
 
-  // ---- Delivery-report header: tucks away as you scroll down, reappears
-  // the moment you scroll back up (or hit the top). See the .rh-hidden rule
-  // next to .report-head for how the margin-collapse trick hands the freed
-  // space to .report-scroll.
+  // ---- Delivery-report header: rides along with the scroll at a 1:1 rate —
+  // every pixel scrolled down tucks the header up by exactly one pixel (via
+  // margin-top, set directly per scroll tick with no CSS transition), and
+  // every pixel scrolled up brings it back by the same amount, so it never
+  // snaps or lags behind the user's own scroll speed. .report-scroll's
+  // flex:1 claims the freed space as the header's margin shrinks.
+  let resetReportHeaderOffset = () => {};
   (function initReportHeaderAutoHide(){
     const head = reportPanel.querySelector('.report-head');
     const scroller = reportPanel.querySelector('.report-scroll');
     if(!head || !scroller) return;
-    const syncHeight = () => head.style.setProperty('--rh-h', head.offsetHeight + 'px');
+
+    let headH = head.offsetHeight;
+    const syncHeight = () => { headH = head.offsetHeight; };
     syncHeight();
     new ResizeObserver(syncHeight).observe(head);
+
+    let offset = 0;   // 0 = header fully shown, headH = fully tucked away
     let lastTop = 0;
+    const apply = () => {
+      head.style.marginTop = offset ? (-offset + 'px') : '';
+      head.classList.toggle('rh-hidden', offset >= headH - 1);
+      head.classList.toggle('rh-elevated', scroller.scrollTop > 4);
+    };
+
     scroller.addEventListener('scroll', () => {
       const top = Math.max(0, scroller.scrollTop);
-      const delta = top - lastTop;
-      if(top < 10)            head.classList.remove('rh-hidden');
-      else if(delta > 4)      head.classList.add('rh-hidden');
-      else if(delta < -4)     head.classList.remove('rh-hidden');
-      head.classList.toggle('rh-elevated', top > 4);
+      offset = Math.min(headH, Math.max(0, offset + (top - lastTop)));
       lastTop = top;
+      apply();
     }, { passive:true });
+
+    resetReportHeaderOffset = () => { offset = 0; lastTop = 0; apply(); };
   })();
 
   // ---- PDF export (browser print → "Save as PDF") ----
