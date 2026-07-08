@@ -459,7 +459,7 @@ canvas.busy{ opacity:.72; }
    prompt to run Auto-detect until a report exists, then the report itself. */
 .report-slot{
   flex:none; background:var(--card); border-top:1px solid var(--line);
-  max-height:49vh; display:flex; flex-direction:column; overflow:hidden;
+  max-height:60vh; display:flex; flex-direction:column; overflow:hidden;
 }
 .report-prompt{
   padding:14px 20px; text-align:center; font-size:13.5px; color:var(--muted);
@@ -467,88 +467,98 @@ canvas.busy{ opacity:.72; }
 .report-prompt b{ color:var(--ink); }
 .report-inline{ display:flex; flex-direction:column; min-height:0; }
 
-/* detection progress strip — one node per phase, showing which of the 4
-   Auto-detect has locked in so far. Each node IS a phase tab: click to jump
-   to that phase's committed (or live-preview) frame. */
+/* detection progress strip — a flat, single-row segmented bar, one capsule
+   per phase, showing which of the 4 Auto-detect has locked in so far. Each
+   capsule IS a phase tab: click to jump to that phase's committed (or
+   live-preview) frame. Deliberately shallow so the video keeps most of the
+   vertical space. */
 .ws-progress{
   flex:none; display:flex; justify-content:center;
-  padding:5px 16px 4px; background:var(--card);
+  padding:7px 16px; background:var(--card);
   border-bottom:1px solid var(--line);
 }
 .ws-progress .pg-track{
-  display:flex; align-items:flex-start; width:100%; max-width:560px;
+  display:flex; align-items:center; width:100%; max-width:640px;
 }
 .ws-progress .pg-seg{
   position:relative; flex:1 1 0; min-width:0;
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  background:none; border:none; padding:2px 2px 0; margin:0; cursor:pointer;
+  display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;
+  background:var(--well); border:1px solid var(--line); border-radius:7px;
+  padding:6px 6px; margin:0; cursor:pointer; overflow:hidden;
   font-family:inherit;
+  transition:background .2s ease, border-color .2s ease;
 }
-.ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:4px; border-radius:10px; }
+.ws-progress .pg-seg:hover{ border-color:var(--navy); }
+.ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
 
 .ws-progress .pg-node{
-  position:relative; width:22px; height:22px; border-radius:50%;
-  background:var(--well); border:2px solid var(--line);
+  position:relative; z-index:1; flex:none; width:17px; height:17px; border-radius:50%;
+  background:var(--card); border:2px solid var(--line);
   display:flex; align-items:center; justify-content:center;
-  transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  transition:background .2s ease, border-color .2s ease;
 }
-.ws-progress .pg-seg:hover .pg-node{ border-color:var(--navy); }
 .ws-progress .pg-num{
-  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px;
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:9.5px;
   color:var(--muted); transition:opacity .15s ease, transform .15s ease;
 }
 .ws-progress .pg-check{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  color:#fff; font-size:13px; opacity:0; transform:scale(.4);
+  color:#fff; font-size:10.5px; opacity:0; transform:scale(.4);
   transition:opacity .15s ease, transform .15s ease;
 }
 .ws-progress .pg-name{
+  position:relative; z-index:1;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:11px; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); white-space:nowrap; transition:color .2s ease;
+  font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:color .2s ease;
 }
 
-/* connecting rail between nodes — fills in once the phase before it is done */
+/* connecting rail between capsules — fills in once the phase before it is done */
 .ws-progress .pg-link{
-  flex:0 1 60px; height:2px; margin-top:10px; border-radius:2px;
+  flex:0 0 10px; height:2px; border-radius:2px;
   background:var(--line); transition:background .25s ease;
 }
 .ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
 
 /* current phase */
-.ws-progress .pg-seg.current .pg-node{ border-color:var(--navy); background:#fff; box-shadow:0 0 0 4px rgba(29,58,99,.14); }
-.ws-progress .pg-seg.current .pg-num{ color:var(--navy); }
+.ws-progress .pg-seg.current{ background:#fff; border-color:var(--navy); box-shadow:0 0 0 3px rgba(29,58,99,.12); }
+.ws-progress .pg-seg.current .pg-node{ border-color:var(--navy); background:var(--navy); }
+.ws-progress .pg-seg.current .pg-num{ color:#fff; }
 .ws-progress .pg-seg.current .pg-name{ color:var(--ink); }
 
-/* done phase — node fills solid with a check */
+/* done phase — node fills solid with a check, capsule tints */
+.ws-progress .pg-seg.done{ background:var(--good-soft); border-color:var(--good); }
 .ws-progress .pg-seg.done .pg-node{ background:var(--good); border-color:var(--good); }
 .ws-progress .pg-seg.done .pg-num{ opacity:0; transform:scale(.5); }
 .ws-progress .pg-seg.done .pg-check{ opacity:1; transform:scale(1); }
 .ws-progress .pg-seg.done .pg-name{ color:var(--good); }
 
-/* mini scan meter under the node — invisible until auto-detect sweeps through */
+/* scan wash — the whole capsule fills as auto-detect sweeps through, instead
+   of a separate mini meter, so the bar itself reads as a flat progress bar */
 .ws-progress .pg-meter{
-  position:relative; width:22px; height:3px; border-radius:99px;
-  background:var(--line); overflow:hidden; opacity:0; transition:opacity .15s ease;
+  position:absolute; inset:0; z-index:0; opacity:0;
+  overflow:hidden; border-radius:6px; pointer-events:none;
+  transition:opacity .15s ease;
 }
 .ws-progress .pg-seg.scanning .pg-meter{ opacity:1; }
 .ws-progress .pg-seg.scanning .pg-node{ border-color:var(--navy); }
 .ws-progress .pg-fill{
   position:absolute; left:0; top:0; bottom:0; width:0;
-  background:var(--navy); transition:width .1s linear; overflow:hidden;
+  background:rgba(29,58,99,.22); transition:width .1s linear; overflow:hidden;
 }
 .ws-progress .pg-seg.scanning .pg-fill::after{
   content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  background:linear-gradient(90deg, transparent, rgba(29,58,99,.35), transparent);
   background-size:60% 100%; background-repeat:no-repeat;
   animation:pgShimmer 1s linear infinite;
 }
 @keyframes pgShimmer{ 0%{ background-position:-120% 0; } 100%{ background-position:240% 0; } }
-@keyframes pgPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.3); } 100%{ transform:scale(1); } }
-.ws-progress .pg-seg.justlocked .pg-node{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
+@keyframes pgPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.15); } 100%{ transform:scale(1); } }
+.ws-progress .pg-seg.justlocked{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
 @media (prefers-reduced-motion:reduce){
   .ws-progress .pg-seg.scanning .pg-fill::after{ animation:none; }
-  .ws-progress .pg-seg.justlocked .pg-node{ animation:none; }
+  .ws-progress .pg-seg.justlocked{ animation:none; }
 }
 
 /* first-run step intro */
@@ -1147,18 +1157,22 @@ canvas.busy{ opacity:.72; }
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
-  .report-slot{ max-height:36vh; }
-  .ws-progress{ padding:4px 16px 3px; }
-  .ws-progress .pg-seg{ gap:1px; }
-  .ws-progress .pg-name{ font-size:10.5px; }
-  .ws-progress .pg-node{ width:22px; height:22px; }
-  .ws-progress .pg-meter{ width:22px; }
-  .ws-progress .pg-link{ flex-basis:24px; height:4px; margin-top:9px; }
+  .report-slot{ max-height:46vh; }
+  .ws-progress{ padding:6px 12px; }
+  .ws-progress .pg-seg{ gap:4px; padding:5px 4px; }
+  .ws-progress .pg-name{ font-size:10px; }
+  .ws-progress .pg-node{ width:16px; height:16px; }
+  .ws-progress .pg-link{ flex-basis:6px; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
 @media (max-width:420px){
-  .ws-progress .pg-name{ font-size:9px; letter-spacing:.02em; }
+  /* names drop at the narrowest widths so the bar stays flat and doesn't
+     wrap; the node number/check plus each button's aria-label still carry
+     the step identity. */
+  .ws-progress .pg-seg{ gap:0; }
+  .ws-progress .pg-name{ display:none; }
+  .ws-progress .pg-link{ flex-basis:8px; }
 }
 
 /* =====================================================================
