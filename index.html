@@ -465,7 +465,7 @@ canvas.busy{ opacity:.72; }
   padding:14px 20px; text-align:center; font-size:13.5px; color:var(--muted);
 }
 .report-prompt b{ color:var(--ink); }
-.report-inline{ display:flex; flex-direction:column; min-height:0; }
+.report-inline{ display:flex; flex-direction:column; min-height:0; overflow:hidden; }
 
 /* phase timeline — 4 small marks laid directly over the scrub track instead
    of a separate progress row, so the video keeps the vertical space. Each
@@ -638,18 +638,24 @@ canvas.busy{ opacity:.72; }
 .ov-playbar button:focus-visible{ outline:2px solid var(--trace); outline-offset:2px; }
 
 .ov-playbar #playBtn{
-  width:40px; height:40px; padding:0; min-width:40px;
+  width:44px; height:44px; padding:0; min-width:44px;
   border-radius:50%;
-  background:#fff;
-  border:none; color:var(--stage);
+  background:radial-gradient(circle at 33% 28%, #ffffff 0%, #f0f1f3 60%, #dfe2e7 100%);
+  border:1px solid rgba(255,255,255,.7);
+  color:var(--stage);
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 3px 14px rgba(0,0,0,.4);
-  transition:transform .15s cubic-bezier(.4,.0,.2,1), background .15s ease;
+  box-shadow:0 4px 16px rgba(0,0,0,.45), 0 0 0 4px rgba(200,245,66,.10), inset 0 1px 1px rgba(255,255,255,.9);
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, background .2s ease;
 }
-.ov-playbar #playBtn:hover{ transform:scale(1.08); background:var(--trace); color:var(--stage); }
-.ov-playbar #playBtn:active{ transform:scale(0.94); }
+.ov-playbar #playBtn:hover{
+  transform:scale(1.08);
+  background:radial-gradient(circle at 33% 28%, #e4ffa0 0%, var(--trace) 62%, #a9d936 100%);
+  box-shadow:0 4px 18px rgba(0,0,0,.5), 0 0 0 7px rgba(200,245,66,.18), inset 0 1px 1px rgba(255,255,255,.7);
+}
+.ov-playbar #playBtn:active{ transform:scale(0.92); }
 .ov-playbar #playBtn:focus-visible{ outline:2px solid var(--trace); outline-offset:3px; }
-.ov-playbar #playBtn svg{ width:16px; height:16px; fill:var(--stage); flex-shrink:0; pointer-events:none; }
+.ov-playbar #playBtn svg{ width:17px; height:17px; fill:var(--stage); flex-shrink:0; pointer-events:none; transition:transform .18s ease; }
+.ov-playbar #playBtn:active svg{ transform:scale(0.9); }
 
 .ov-playbar input[type=range]{ flex:1; min-width:60px; }
 .ov-playbar #timeLabel{
@@ -657,8 +663,8 @@ canvas.busy{ opacity:.72; }
   color:rgba(255,255,255,.75); min-width:52px; text-align:right; letter-spacing:.02em;
 }
 @media (hover:none) and (pointer:coarse){
-  .ov-playbar #playBtn{ width:48px; height:48px; min-width:48px; }
-  .ov-playbar #playBtn svg{ width:18px; height:18px; }
+  .ov-playbar #playBtn{ width:50px; height:50px; min-width:50px; }
+  .ov-playbar #playBtn svg{ width:19px; height:19px; }
   .ov-playbar button{ min-width:40px; padding:9px 11px; font-size:12px; }
   .scrub-marks .pg-seg{ width:21px; height:21px; }
   .scrub-marks .pg-num{ font-size:10px; }
@@ -964,8 +970,16 @@ canvas.busy{ opacity:.72; }
   flex:none; display:flex; align-items:center; gap:12px; padding:8px 20px;
   border-bottom:1px solid var(--line); background:var(--card);
   position:relative;
+  transition:margin-top .3s cubic-bezier(.4,0,.2,1), box-shadow .2s ease;
 }
-.report-head::after{ content:''; position:absolute; left:20px; bottom:-2px; width:64px; height:3px; background:var(--seam); }
+.report-head::after{ content:''; position:absolute; left:20px; bottom:-2px; width:64px; height:3px; background:var(--seam); transition:opacity .15s ease; }
+/* Scrolling the report down tucks the header out of view (via negative
+   margin, so .report-scroll's flex:1 immediately claims the freed space);
+   scrolling back up — even a little — brings it straight back. See the
+   scroll listener near reportPanel in the script for the direction logic. */
+.report-head.rh-hidden{ margin-top:calc(-1 * var(--rh-h, 46px)); }
+.report-head.rh-hidden::after{ opacity:0; }
+.report-head.rh-elevated{ box-shadow:0 3px 10px rgba(20,33,58,.14); }
 .report-head h2{
   font-family:'Barlow Condensed',sans-serif; font-weight:700;
   font-size:17px; text-transform:uppercase; letter-spacing:.02em;
@@ -1146,7 +1160,7 @@ canvas.busy{ opacity:.72; }
      whatever the report doesn't need — the report flexes to fill the rest
      and scrolls internally (see .report-scroll), so it stays readable
      whether it's a one-line prompt or a full delivery report. */
-  .ws-body{ flex-direction:column; flex:0 0 50vh; min-height:0; }
+  .ws-body{ flex-direction:column; flex:0 0 42.5vh; min-height:0; }
   .video-col{ flex:1; min-height:0; }
   .side-col{
     width:100%; border-left:none; border-top:1px solid var(--line);
@@ -2746,7 +2760,7 @@ canvas.busy{ opacity:.72; }
 
   // SVG paths for play / pause icons
   const SVG_PLAY  = '<path d="M4 2.5l9 5.5-9 5.5V2.5z"/>';
-  const SVG_PAUSE = '<path d="M4 2h3v12H4V2zm5 0h3v12H9V2z"/>';
+  const SVG_PAUSE = '<rect x="4" y="2" width="3" height="12" rx="1.2"/><rect x="9" y="2" width="3" height="12" rx="1.2"/>';
   const playIcon  = document.getElementById('playIcon');
   function setPlayIcon(isPlaying){
     if(playIcon) playIcon.innerHTML = isPlaying ? SVG_PAUSE : SVG_PLAY;
@@ -4338,7 +4352,32 @@ canvas.busy{ opacity:.72; }
     // Always start the report at the top, even if it was scrolled previously.
     const rs = reportPanel.querySelector('.report-scroll');
     if(rs) rs.scrollTop = 0;
+    const rh = reportPanel.querySelector('.report-head');
+    if(rh) rh.classList.remove('rh-hidden');
   }
+
+  // ---- Delivery-report header: tucks away as you scroll down, reappears
+  // the moment you scroll back up (or hit the top). See the .rh-hidden rule
+  // next to .report-head for how the margin-collapse trick hands the freed
+  // space to .report-scroll.
+  (function initReportHeaderAutoHide(){
+    const head = reportPanel.querySelector('.report-head');
+    const scroller = reportPanel.querySelector('.report-scroll');
+    if(!head || !scroller) return;
+    const syncHeight = () => head.style.setProperty('--rh-h', head.offsetHeight + 'px');
+    syncHeight();
+    new ResizeObserver(syncHeight).observe(head);
+    let lastTop = 0;
+    scroller.addEventListener('scroll', () => {
+      const top = Math.max(0, scroller.scrollTop);
+      const delta = top - lastTop;
+      if(top < 10)            head.classList.remove('rh-hidden');
+      else if(delta > 4)      head.classList.add('rh-hidden');
+      else if(delta < -4)     head.classList.remove('rh-hidden');
+      head.classList.toggle('rh-elevated', top > 4);
+      lastTop = top;
+    }, { passive:true });
+  })();
 
   // ---- PDF export (browser print → "Save as PDF") ----
   // A print stylesheet renders the report on white paper; here we just stamp a
