@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Mound Metrics AI</title>
+<meta name="description" content="Privacy policy for Mound Metrics AI. Video is processed entirely in your browser and never uploaded.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%231D3A63%22/><text x=%2250%22 y=%2266%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-family=%22sans-serif%22>M</text></svg>">
+<script data-goatcounter="https://YOUR-CODE.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
+*{ box-sizing:border-box; margin:0; padding:0; }
+:root{
+  --paper:#EDF0F4; --card:#FFFFFF; --ink:#14213A; --muted:#5C6B84;
+  --line:#D7DDE6; --navy:#1D3A63; --navy-deep:#152C4C; --red:#C8102E;
+  --good:#1E7B4D; --good-soft:#E4F2EA;
+  --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
+}
+body{ font-family:'Barlow',system-ui,sans-serif; background:var(--paper); color:var(--ink); line-height:1.6; }
+.app-header{
+  height:52px; display:flex; align-items:center; padding:0 18px;
+  background:var(--card); border-bottom:1px solid var(--line);
+}
+.app-header a{ text-decoration:none; color:var(--ink); font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.03em; text-transform:uppercase; font-size:19px; }
+.wrap{ max-width:760px; margin:0 auto; padding:36px 20px 72px; }
+.eyebrow{ font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
+h1{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:clamp(28px,5vw,42px); text-transform:uppercase; margin-bottom:6px; position:relative; padding-bottom:18px; }
+h1::after{ content:''; position:absolute; left:0; bottom:0; width:80px; height:3px; background:var(--seam); }
+.updated{ color:var(--muted); font-size:13px; margin:14px 0 28px; }
+.callout{
+  background:var(--good-soft); border:1px solid #B9DFC7; border-left:3px solid var(--good);
+  border-radius:8px; padding:16px 18px; margin:20px 0 28px; font-size:14.5px;
+}
+.callout strong{ color:var(--good); display:block; margin-bottom:4px; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:.04em; }
+h2{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:19px; text-transform:uppercase; letter-spacing:.02em; margin:30px 0 10px; color:var(--ink); }
+p{ margin-bottom:14px; font-size:15px; color:var(--ink); }
+p.muted{ color:var(--muted); font-size:14px; }
+ul{ margin:0 0 14px 20px; }
+li{ margin-bottom:6px; font-size:15px; }
+table{ width:100%; border-collapse:collapse; margin:14px 0 22px; font-size:14px; }
+th,td{ text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th{ font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-size:12px; }
+a{ color:var(--navy); }
+a:hover{ color:var(--navy-deep); }
+.back{ display:inline-block; margin-top:36px; font-family:'Barlow Condensed',sans-serif; font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:13px; }
+</style>
+</head>
+<body>
+
+<header class="app-header"><a href="index.html">← Mound Metrics AI</a></header>
+
+<div class="wrap">
+  <div class="eyebrow">Straightforward, by design</div>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: July 2026</p>
+
+  <div class="callout">
+    <strong>The short version</strong>
+    Your video and any measurements you mark stay on your device. Nothing about the pitcher, the video, or the analysis is ever sent to a server. The only data leaving your browser is an anonymous page-visit count.
+  </div>
+
+  <h2>What never leaves your device</h2>
+  <p>Mound Metrics AI runs entirely client-side, in your browser. When you upload a video, it is loaded directly into the browser and processed there by an on-device pose-detection model. There is no upload step, no video storage server, and no account for us to attach a video to even if we wanted to.</p>
+  <ul>
+    <li>Your video file</li>
+    <li>Any frames you mark, joint positions, angles, or measurements</li>
+    <li>Pitcher height, age range, throwing hand, and saved athlete/analysis names</li>
+  </ul>
+  <p>These are stored using your browser's built-in local storage (IndexedDB / localStorage), on your device only. They persist between visits so you can reload a saved analysis, and they're removed if you clear your browser's site data for this page. We have no way to see, access, or recover this data — it never reaches us.</p>
+
+  <h2>What does leave your device</h2>
+  <table>
+    <tr><th>Item</th><th>What it is</th><th>Why</th></tr>
+    <tr><td>Pose-detection model files</td><td>A one-time download of the AI model from a third-party CDN (jsDelivr), cached by your browser</td><td>Needed to run pose detection locally — no video or personal data is included in this request</td></tr>
+    <tr><td>Anonymous page visits</td><td>A basic, cookie-free visit counter (page viewed, rough browser/OS type, referring site)</td><td>So we can see how many people use the app — see below</td></tr>
+  </table>
+
+  <h2>Analytics</h2>
+  <p>We use a privacy-focused analytics service to count visits. It does not use cookies, does not build advertising profiles, and does not track you across other websites. It cannot see your video, your inputs, or anything you do inside the app — only that a page on this site was loaded.</p>
+
+  <h2>No accounts, no login</h2>
+  <p>There is nothing to sign up for. We don't collect names, emails, or any other personal information, and there's no server-side database of users.</p>
+
+  <h2>Third parties</h2>
+  <p>This site is hosted on GitHub Pages and loads the pose-detection model from the jsDelivr CDN. Both may log basic technical request data (like IP address) as part of normal web infrastructure operation — this is standard for any website and outside our control, and is covered by their own policies, not ours.</p>
+
+  <h2>Children's privacy</h2>
+  <p>The app includes an age-range option for describing a pitcher being analyzed, which is not the same as collecting data from a child user. No personal information about any pitcher, of any age, is collected or transmitted by this app.</p>
+
+  <h2>Changes to this policy</h2>
+  <p class="muted">If this policy changes, we'll update the date at the top of this page.</p>
+
+  <a class="back" href="index.html">← Back to the app</a>
+</div>
+
+</body>
+</html>

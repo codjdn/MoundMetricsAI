@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Disclaimer — Mound Metrics AI</title>
+<meta name="description" content="Medical disclaimer for Mound Metrics AI, a browser-based pitching mechanics analysis tool.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%231D3A63%22/><text x=%2250%22 y=%2266%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-family=%22sans-serif%22>M</text></svg>">
+<script data-goatcounter="https://YOUR-CODE.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
+*{ box-sizing:border-box; margin:0; padding:0; }
+:root{
+  --paper:#EDF0F4; --card:#FFFFFF; --ink:#14213A; --muted:#5C6B84;
+  --line:#D7DDE6; --navy:#1D3A63; --navy-deep:#152C4C; --red:#C8102E;
+  --flag:#A85B00; --flag-soft:#FBEFDD;
+  --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
+}
+body{ font-family:'Barlow',system-ui,sans-serif; background:var(--paper); color:var(--ink); line-height:1.6; }
+.app-header{
+  height:52px; display:flex; align-items:center; padding:0 18px;
+  background:var(--card); border-bottom:1px solid var(--line);
+}
+.app-header a{ text-decoration:none; color:var(--ink); font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.03em; text-transform:uppercase; font-size:19px; }
+.wrap{ max-width:760px; margin:0 auto; padding:36px 20px 72px; }
+.eyebrow{ font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
+h1{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:clamp(28px,5vw,42px); text-transform:uppercase; margin-bottom:6px; position:relative; padding-bottom:18px; }
+h1::after{ content:''; position:absolute; left:0; bottom:0; width:80px; height:3px; background:var(--seam); }
+.updated{ color:var(--muted); font-size:13px; margin:14px 0 28px; }
+.callout{
+  background:var(--flag-soft); border:1px solid #EBD2A6; border-left:3px solid var(--flag);
+  border-radius:8px; padding:16px 18px; margin:20px 0 28px; font-size:14.5px;
+}
+.callout strong{ color:var(--flag); display:block; margin-bottom:4px; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:.04em; }
+h2{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:19px; text-transform:uppercase; letter-spacing:.02em; margin:30px 0 10px; color:var(--ink); }
+p{ margin-bottom:14px; font-size:15px; color:var(--ink); }
+p.muted{ color:var(--muted); font-size:14px; }
+ul{ margin:0 0 14px 20px; }
+li{ margin-bottom:6px; font-size:15px; }
+a{ color:var(--navy); }
+a:hover{ color:var(--navy-deep); }
+.back{ display:inline-block; margin-top:36px; font-family:'Barlow Condensed',sans-serif; font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:13px; }
+</style>
+</head>
+<body>
+
+<header class="app-header"><a href="index.html">← Mound Metrics AI</a></header>
+
+<div class="wrap">
+  <div class="eyebrow">Please read</div>
+  <h1>Medical Disclaimer</h1>
+  <p class="updated">Last updated: July 2026</p>
+
+  <div class="callout">
+    <strong>The short version</strong>
+    Mound Metrics AI is a training and educational tool. It is not a medical device, and it does not diagnose, treat, or assess injury risk. Don't use it as a substitute for guidance from a qualified coach, athletic trainer, physical therapist, or physician.
+  </div>
+
+  <h2>What this tool actually does</h2>
+  <p>Mound Metrics AI uses an on-device pose-estimation model to estimate the position of a pitcher's joints from a single 2D camera angle, on frames you choose to mark. It compares the resulting angles and ratios to general reference ranges drawn from publicly available pitching biomechanics research.</p>
+  <p>That is fundamentally different from a clinical or biomechanics-lab assessment, which typically uses multiple synchronized cameras, markers or sensors placed directly on the body, and review by a trained professional. A single-camera video estimate can misjudge joint positions, especially at fast-moving points in the delivery, and cannot capture everything a trained eye or lab equipment would catch.</p>
+
+  <h2>No diagnosis, no guarantee</h2>
+  <ul>
+    <li>Landing outside a "typical range" shown in the app is not a diagnosis of a mechanical flaw or an injury risk, and is not medical advice.</li>
+    <li>Landing inside a "typical range" is not a guarantee of safety, health, or performance. Every pitcher's mechanics vary with body type, mobility, training age, and pitch type.</li>
+    <li>The app cannot assess pain, joint health, fatigue, workload, or anything that requires a physical exam or medical history.</li>
+    <li>Treat the app's output as a starting point for conversation with a coach or medical professional — not a conclusion.</li>
+  </ul>
+
+  <h2>If you're concerned about injury risk</h2>
+  <p>Arm and shoulder injuries in throwing athletes are serious, and mechanics are only one piece of the picture — workload, recovery, strength, and pitch counts all matter. If you or your athlete is dealing with pain, or you have real concerns about injury risk, talk to a sports medicine physician, physical therapist, or athletic trainer directly. Don't rely on this app, or any app, in place of that.</p>
+
+  <h2>Age ranges</h2>
+  <p>The app lets you select an age range to adjust reference values. This is a rough adjustment based on general developmental patterns, not a youth-pitching-specific clinical tool. Coaches and parents of young throwers should follow established pitch-count and rest guidelines (for example, from USA Baseball / MLB Pitch Smart) regardless of what this app shows.</p>
+
+  <h2>No warranty</h2>
+  <p>This tool is provided "as is," without warranty of any kind, express or implied, including accuracy, fitness for a particular purpose, or reliability of the pose-detection AI. By using this app, you accept that its output is an estimate, may contain errors, and is used entirely at your own discretion and risk.</p>
+
+  <a class="back" href="index.html">← Back to the app</a>
+</div>
+
+</body>
+</html>
