@@ -455,10 +455,10 @@ canvas.busy{ opacity:.72; }
 .ov-focuschip #focusChipBack:hover{ filter:brightness(1.06); }
 .ov-focuschip #focusChipBack:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
 
-/* report slot — sits at the top of the workspace. Shows a prompt to run
-   Auto-detect until a report exists, then the report itself. */
+/* report slot — sits below the video and scrolls independently. Shows a
+   prompt to run Auto-detect until a report exists, then the report itself. */
 .report-slot{
-  flex:none; background:var(--card); border-bottom:1px solid var(--line);
+  flex:none; background:var(--card); border-top:1px solid var(--line);
   max-height:46vh; display:flex; flex-direction:column; overflow:hidden;
 }
 .report-prompt{
@@ -960,21 +960,21 @@ canvas.busy{ opacity:.72; }
    REPORT — inline, embedded in the report slot
    ===================================================================== */
 .report-head{
-  flex:none; display:flex; align-items:center; gap:12px; padding:15px 20px;
+  flex:none; display:flex; align-items:center; gap:12px; padding:8px 20px;
   border-bottom:1px solid var(--line); background:var(--card);
   position:relative;
 }
 .report-head::after{ content:''; position:absolute; left:20px; bottom:-2px; width:64px; height:3px; background:var(--seam); }
 .report-head h2{
   font-family:'Barlow Condensed',sans-serif; font-weight:700;
-  font-size:22px; text-transform:uppercase; letter-spacing:.02em;
+  font-size:17px; text-transform:uppercase; letter-spacing:.02em;
 }
 .report-head .spacer{ flex:1; }
 .report-head-actions{
-  flex:none; display:flex; flex-direction:column; gap:4px;
+  flex:none; display:flex; flex-direction:row; gap:6px;
 }
 .report-head-actions .ghost-btn{
-  flex:none; padding:4px 12px; font-size:10.5px; letter-spacing:.05em; line-height:1.4;
+  flex:none; padding:5px 12px; font-size:10.5px; letter-spacing:.05em; line-height:1.4;
 }
 .report-scroll{ flex:1; overflow-y:auto; padding:20px; }
 
@@ -1142,7 +1142,7 @@ canvas.busy{ opacity:.72; }
 }
 @media (max-width:720px){
   .ws-body{ flex-direction:column; }
-  .video-col{ flex:none; height:43vh; }
+  .video-col{ flex:1; min-height:0; }
   .side-col{
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
@@ -1442,42 +1442,8 @@ canvas.busy{ opacity:.72; }
       </div>
     </div>
 
-    <!-- report slot: lives where the phase progress stepper used to be. Shows a
-         nudge to run Auto-detect until a report exists, then the delivery
-         report renders here automatically — no separate drawer. -->
-    <div class="report-slot" id="reportSlot">
-      <div class="report-prompt" id="reportPrompt">
-        <p>Tap <b>Auto-detect</b> below to scan your delivery — your report will appear here.</p>
-      </div>
-      <div class="report-inline hidden" id="reportPanel">
-        <div class="report-head">
-          <h2>Delivery report</h2>
-          <span class="spacer"></span>
-          <div class="report-head-actions">
-            <button class="ghost-btn" id="pdfBtn" title="Save the report as a PDF">Save as PDF</button>
-            <button class="ghost-btn" id="restartBtn">New video</button>
-          </div>
-        </div>
-        <div class="report-scroll">
-          <!-- print-only branded header; populated by buildReport() -->
-          <div class="report-print-head" id="reportPrintHead" aria-hidden="true"></div>
-          <!-- marked-frame thumbnails for the PDF; populated on "Save as PDF" -->
-          <div class="report-thumbs" id="reportThumbs"></div>
-          <div class="report-takeaway hidden" id="reportTakeaway"></div>
-          <div class="report-summary" id="reportSummary"></div>
-          <div class="report-priorities hidden" id="reportPriorities"></div>
-          <div class="report-grid" id="reportGrid"></div>
-
-          <div class="disclaimer">
-            <p><strong>What this is, and isn't.</strong> The AI estimates joint positions from a single camera angle on the frames Auto-detect picks, and the app compares the resulting angles and ratios to general ranges seen in pitching biomechanics research. It's a rough 2D estimate, not a 3D motion-capture measurement, and the AI can misplace joints in a side view — always sanity-check the dots against the video, and run Auto-detect again if they look off.</p>
-            <p>Everyone's mechanics vary with body type, mobility, and pitch type — landing outside a "typical range" here isn't a diagnosis of a problem, and landing inside one isn't a guarantee of safety or velocity. Treat these as talking points.</p>
-            <p>For anything related to injury risk in particular — especially elbow and shoulder stress — a pitching coach, athletic trainer, or sports medicine / biomechanics lab can give a far more precise and individualized assessment than a single video ever can.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- detection progress: shows which of the 4 phases Auto-detect has locked in -->
+    <!-- detection progress: shows which of the 4 phases Auto-detect has locked in.
+         Sits above the video so all four phase tabs are visible before scrolling. -->
     <div class="ws-progress" id="wsProgress">
       <div class="pg-track" id="pgTrack">
         <button type="button" class="pg-seg phase-tab active" data-phase="reference" aria-label="Step 1 of 4: Reference stance">
@@ -1678,6 +1644,41 @@ canvas.busy{ opacity:.72; }
           </p>
         </div>
       </aside>
+    </div>
+
+    <!-- report slot: sits below the video and scrolls independently. Shows a
+         nudge to run Auto-detect until a report exists, then the delivery
+         report renders here automatically — no separate drawer. -->
+    <div class="report-slot" id="reportSlot">
+      <div class="report-prompt" id="reportPrompt">
+        <p>Tap <b>Auto-detect</b> below to scan your delivery — your report will appear here.</p>
+      </div>
+      <div class="report-inline hidden" id="reportPanel">
+        <div class="report-head">
+          <h2>Delivery report</h2>
+          <span class="spacer"></span>
+          <div class="report-head-actions">
+            <button class="ghost-btn" id="pdfBtn" title="Save the report as a PDF">Save as PDF</button>
+            <button class="ghost-btn" id="restartBtn">New video</button>
+          </div>
+        </div>
+        <div class="report-scroll">
+          <!-- print-only branded header; populated by buildReport() -->
+          <div class="report-print-head" id="reportPrintHead" aria-hidden="true"></div>
+          <!-- marked-frame thumbnails for the PDF; populated on "Save as PDF" -->
+          <div class="report-thumbs" id="reportThumbs"></div>
+          <div class="report-takeaway hidden" id="reportTakeaway"></div>
+          <div class="report-summary" id="reportSummary"></div>
+          <div class="report-priorities hidden" id="reportPriorities"></div>
+          <div class="report-grid" id="reportGrid"></div>
+
+          <div class="disclaimer">
+            <p><strong>What this is, and isn't.</strong> The AI estimates joint positions from a single camera angle on the frames Auto-detect picks, and the app compares the resulting angles and ratios to general ranges seen in pitching biomechanics research. It's a rough 2D estimate, not a 3D motion-capture measurement, and the AI can misplace joints in a side view — always sanity-check the dots against the video, and run Auto-detect again if they look off.</p>
+            <p>Everyone's mechanics vary with body type, mobility, and pitch type — landing outside a "typical range" here isn't a diagnosis of a problem, and landing inside one isn't a guarantee of safety or velocity. Treat these as talking points.</p>
+            <p>For anything related to injury risk in particular — especially elbow and shoulder stress — a pitching coach, athletic trainer, or sports medicine / biomechanics lab can give a far more precise and individualized assessment than a single video ever can.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
