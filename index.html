@@ -88,7 +88,7 @@ body{
 }
 
 /* ---------- glassmorphism: shared frosted-glass treatment ---------- */
-.panel, .app-header, .mode-toggle, .upload-zone, .report-slot, .ws-progress, .intro-card,
+.panel, .app-header, .mode-toggle, .upload-zone, .report-slot, .intro-card,
 .side-col, .video-actions-bar, .help-disc, .modal, .saved-item, .progress-empty,
 .trend-card, .drill-area, .panel-topbar, .report-head, .metric-card,
 .report-priorities, .report-takeaway, .report-thumb, .filming-tips, .proc-bar,
@@ -467,98 +467,63 @@ canvas.busy{ opacity:.72; }
 .report-prompt b{ color:var(--ink); }
 .report-inline{ display:flex; flex-direction:column; min-height:0; }
 
-/* detection progress strip — a flat, single-row segmented bar, one capsule
-   per phase, showing which of the 4 Auto-detect has locked in so far. Each
-   capsule IS a phase tab: click to jump to that phase's committed (or
-   live-preview) frame. Deliberately shallow so the video keeps most of the
-   vertical space. */
-.ws-progress{
-  flex:none; display:flex; justify-content:center;
-  padding:7px 16px; background:var(--card);
-  border-bottom:1px solid var(--line);
+/* phase timeline — 4 small marks laid directly over the scrub track instead
+   of a separate progress row, so the video keeps the vertical space. Each
+   mark IS a phase tab: click to jump to that phase's committed (or
+   live-preview) frame. Horizontal position reflects the phase's marked time
+   as a fraction of the clip; unmarked phases fall back to an evenly spaced
+   placeholder so the four dots don't stack. */
+.scrub-wrap{ position:relative; flex:1 1 0; min-width:60px; display:flex; align-items:center; }
+.scrub-wrap #scrub{ width:100%; }
+.scrub-marks{
+  position:absolute; left:7px; right:7px; top:50%; height:0;
+  pointer-events:none; z-index:2;
 }
-.ws-progress .pg-track{
-  display:flex; align-items:center; width:100%; max-width:640px;
-}
-.ws-progress .pg-seg{
-  position:relative; flex:1 1 0; min-width:0;
-  display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;
-  background:var(--well); border:1px solid var(--line); border-radius:7px;
-  padding:6px 6px; margin:0; cursor:pointer; overflow:hidden;
-  font-family:inherit;
-  transition:background .2s ease, border-color .2s ease;
-}
-.ws-progress .pg-seg:hover{ border-color:var(--navy); }
-.ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
-
-.ws-progress .pg-node{
-  position:relative; z-index:1; flex:none; width:17px; height:17px; border-radius:50%;
-  background:var(--card); border:2px solid var(--line);
+.scrub-marks .pg-seg{
+  position:absolute; top:0; transform:translate(-50%,-50%);
+  width:14px; height:14px; min-width:0; line-height:1; padding:0; margin:0; border-radius:50%;
+  background:rgba(20,33,58,.65); border:1.5px solid rgba(255,255,255,.55); color:#fff;
   display:flex; align-items:center; justify-content:center;
-  transition:background .2s ease, border-color .2s ease;
+  cursor:pointer; pointer-events:auto; font-family:inherit;
+  transition:background .2s ease, border-color .2s ease, transform .15s ease;
 }
-.ws-progress .pg-num{
-  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:9.5px;
-  color:var(--muted); transition:opacity .15s ease, transform .15s ease;
+.scrub-marks .pg-seg:hover{ border-color:var(--trace); background:rgba(20,33,58,.65); color:#fff; }
+.scrub-marks .pg-seg:active{ transform:translate(-50%,-50%) scale(.88); }
+.scrub-marks .pg-seg:focus-visible{ outline:2px solid var(--trace); outline-offset:2px; }
+
+.scrub-marks .pg-num{
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:8px;
+  color:#fff; line-height:1; transition:opacity .15s ease, transform .15s ease;
 }
-.ws-progress .pg-check{
+.scrub-marks .pg-check{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  color:#fff; font-size:10.5px; opacity:0; transform:scale(.4);
+  color:#14213A; font-size:9px; opacity:0; transform:scale(.4);
   transition:opacity .15s ease, transform .15s ease;
 }
-.ws-progress .pg-name{
-  position:relative; z-index:1;
-  font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:11px; letter-spacing:.04em; text-transform:uppercase;
-  color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  transition:color .2s ease;
+
+/* current phase (not yet marked) */
+.scrub-marks .pg-seg.current{
+  border-color:var(--trace); background:rgba(20,33,58,.9);
+  transform:translate(-50%,-50%) scale(1.2);
 }
 
-/* connecting rail between capsules — fills in once the phase before it is done */
-.ws-progress .pg-link{
-  flex:0 0 10px; height:2px; border-radius:2px;
-  background:var(--line); transition:background .25s ease;
-}
-.ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
+/* done phase — mark fills solid with a check */
+.scrub-marks .pg-seg.done{ background:var(--trace); border-color:var(--trace); }
+.scrub-marks .pg-seg.done .pg-num{ opacity:0; transform:scale(.5); }
+.scrub-marks .pg-seg.done .pg-check{ opacity:1; transform:scale(1); }
 
-/* current phase */
-.ws-progress .pg-seg.current{ background:#fff; border-color:var(--navy); box-shadow:0 0 0 3px rgba(29,58,99,.12); }
-.ws-progress .pg-seg.current .pg-node{ border-color:var(--navy); background:var(--navy); }
-.ws-progress .pg-seg.current .pg-num{ color:#fff; }
-.ws-progress .pg-seg.current .pg-name{ color:var(--ink); }
-
-/* done phase — node fills solid with a check, capsule tints */
-.ws-progress .pg-seg.done{ background:var(--good-soft); border-color:var(--good); }
-.ws-progress .pg-seg.done .pg-node{ background:var(--good); border-color:var(--good); }
-.ws-progress .pg-seg.done .pg-num{ opacity:0; transform:scale(.5); }
-.ws-progress .pg-seg.done .pg-check{ opacity:1; transform:scale(1); }
-.ws-progress .pg-seg.done .pg-name{ color:var(--good); }
-
-/* scan wash — the whole capsule fills as auto-detect sweeps through, instead
-   of a separate mini meter, so the bar itself reads as a flat progress bar */
-.ws-progress .pg-meter{
-  position:absolute; inset:0; z-index:0; opacity:0;
-  overflow:hidden; border-radius:6px; pointer-events:none;
-  transition:opacity .15s ease;
+/* scan pulse while auto-detect sweeps through */
+.scrub-marks .pg-seg.scanning{ border-color:var(--trace); animation:pgScan 1s ease-in-out infinite; }
+@keyframes pgScan{ 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
+@keyframes pgPop{
+  0%{ transform:translate(-50%,-50%) scale(1); }
+  45%{ transform:translate(-50%,-50%) scale(1.55); }
+  100%{ transform:translate(-50%,-50%) scale(1); }
 }
-.ws-progress .pg-seg.scanning .pg-meter{ opacity:1; }
-.ws-progress .pg-seg.scanning .pg-node{ border-color:var(--navy); }
-.ws-progress .pg-fill{
-  position:absolute; left:0; top:0; bottom:0; width:0;
-  background:rgba(29,58,99,.22); transition:width .1s linear; overflow:hidden;
-}
-.ws-progress .pg-seg.scanning .pg-fill::after{
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg, transparent, rgba(29,58,99,.35), transparent);
-  background-size:60% 100%; background-repeat:no-repeat;
-  animation:pgShimmer 1s linear infinite;
-}
-@keyframes pgShimmer{ 0%{ background-position:-120% 0; } 100%{ background-position:240% 0; } }
-@keyframes pgPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.15); } 100%{ transform:scale(1); } }
-.ws-progress .pg-seg.justlocked{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
+.scrub-marks .pg-seg.justlocked{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
 @media (prefers-reduced-motion:reduce){
-  .ws-progress .pg-seg.scanning .pg-fill::after{ animation:none; }
-  .ws-progress .pg-seg.justlocked{ animation:none; }
+  .scrub-marks .pg-seg.scanning{ animation:none; }
+  .scrub-marks .pg-seg.justlocked{ animation:none; }
 }
 
 /* first-run step intro */
@@ -672,6 +637,7 @@ canvas.busy{ opacity:.72; }
   .ov-playbar #playBtn{ width:48px; height:48px; min-width:48px; }
   .ov-playbar #playBtn svg{ width:18px; height:18px; }
   .ov-playbar button{ min-width:40px; padding:9px 11px; font-size:12px; }
+  .scrub-marks .pg-seg{ width:18px; height:18px; }
 }
 
 /* ---------- side rail ---------- */
@@ -1158,21 +1124,12 @@ canvas.busy{ opacity:.72; }
     flex:1; min-height:0; overflow:hidden;
   }
   .report-slot{ max-height:46vh; }
-  .ws-progress{ padding:6px 12px; }
-  .ws-progress .pg-seg{ gap:4px; padding:5px 4px; }
-  .ws-progress .pg-name{ font-size:10px; }
-  .ws-progress .pg-node{ width:16px; height:16px; }
-  .ws-progress .pg-link{ flex-basis:6px; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
 @media (max-width:420px){
-  /* names drop at the narrowest widths so the bar stays flat and doesn't
-     wrap; the node number/check plus each button's aria-label still carry
-     the step identity. */
-  .ws-progress .pg-seg{ gap:0; }
-  .ws-progress .pg-name{ display:none; }
-  .ws-progress .pg-link{ flex-basis:8px; }
+  .scrub-marks .pg-seg{ width:12px; height:12px; }
+  .scrub-marks .pg-num{ font-size:7px; }
 }
 
 /* =====================================================================
@@ -1457,37 +1414,6 @@ canvas.busy{ opacity:.72; }
       </div>
     </div>
 
-    <!-- detection progress: shows which of the 4 phases Auto-detect has locked in.
-         Sits above the video so all four phase tabs are visible before scrolling. -->
-    <div class="ws-progress" id="wsProgress">
-      <div class="pg-track" id="pgTrack">
-        <button type="button" class="pg-seg phase-tab active" data-phase="reference" aria-label="Step 1 of 4: Reference stance">
-          <span class="pg-node"><span class="pg-num">1</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Reference</span>
-        </button>
-        <span class="pg-link" aria-hidden="true"></span>
-        <button type="button" class="pg-seg phase-tab" data-phase="leglift" aria-label="Step 2 of 4: Leg lift">
-          <span class="pg-node"><span class="pg-num">2</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Leg lift</span>
-        </button>
-        <span class="pg-link" aria-hidden="true"></span>
-        <button type="button" class="pg-seg phase-tab" data-phase="footplant" aria-label="Step 3 of 4: Foot plant">
-          <span class="pg-node"><span class="pg-num">3</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Foot plant</span>
-        </button>
-        <span class="pg-link" aria-hidden="true"></span>
-        <button type="button" class="pg-seg phase-tab" data-phase="release" aria-label="Step 4 of 4: Release">
-          <span class="pg-node"><span class="pg-num">4</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Release</span>
-        </button>
-      </div>
-      <span class="sr-only" id="pgCount" aria-live="polite">0 / 4 frames marked</span>
-    </div>
-
     <div class="ws-body">
       <!-- ---------- video stage ---------- -->
       <div class="video-col" id="videoCol">
@@ -1527,8 +1453,29 @@ canvas.busy{ opacity:.72; }
               <!-- icon swapped by JS; start as play arrow -->
               <svg id="playIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5V2.5z"/></svg>
             </button>
-            <input type="range" id="scrub" min="0" max="1" step="0.001" value="0">
+            <div class="scrub-wrap">
+              <input type="range" id="scrub" min="0" max="1" step="0.001" value="0">
+              <!-- phase timeline: 4 small marks over the scrub track, positioned at
+                   each phase's marked time. Each mark IS a phase tab: click to jump
+                   to that phase's committed (or live-preview) frame. Replaces the
+                   old full-width progress row so the video keeps its space. -->
+              <div class="scrub-marks" id="pgTrack">
+                <button type="button" class="pg-seg phase-tab active" data-phase="reference" aria-label="Step 1 of 4: Reference stance">
+                  <span class="pg-num">1</span><span class="pg-check" aria-hidden="true">&#10003;</span>
+                </button>
+                <button type="button" class="pg-seg phase-tab" data-phase="leglift" aria-label="Step 2 of 4: Leg lift">
+                  <span class="pg-num">2</span><span class="pg-check" aria-hidden="true">&#10003;</span>
+                </button>
+                <button type="button" class="pg-seg phase-tab" data-phase="footplant" aria-label="Step 3 of 4: Foot plant">
+                  <span class="pg-num">3</span><span class="pg-check" aria-hidden="true">&#10003;</span>
+                </button>
+                <button type="button" class="pg-seg phase-tab" data-phase="release" aria-label="Step 4 of 4: Release">
+                  <span class="pg-num">4</span><span class="pg-check" aria-hidden="true">&#10003;</span>
+                </button>
+              </div>
+            </div>
             <span id="timeLabel">0.00s</span>
+            <span class="sr-only" id="pgCount" aria-live="polite">0 / 4 frames marked</span>
           </div>
         </div>
 
@@ -3146,6 +3093,21 @@ canvas.busy{ opacity:.72; }
       seg.classList.toggle('done', state.phases[p].time !== null);
       seg.classList.toggle('current', p === state.currentPhase && state.phases[p].time === null);
     });
+    updateScrubMarkers();
+  }
+
+  // Position each phase's mark along the scrub track at its committed time
+  // (as a fraction of clip duration). A phase that hasn't been marked yet
+  // falls back to an evenly spaced slot so the four marks don't overlap.
+  function updateScrubMarkers(){
+    const dur = video.duration || parseFloat(scrub.max) || 1;
+    PHASE_ORDER.forEach((p, i) => {
+      const seg = pgSegs[i];
+      if(!seg) return;
+      const t = state.phases[p].time;
+      const pct = (t != null && dur > 0) ? clamp(t / dur, 0, 1) : (i + 0.5) / PHASE_ORDER.length;
+      seg.style.left = (pct * 100) + '%';
+    });
   }
   // ===============================================================
   // AUTO-DETECT VISUALIZATION
@@ -3192,6 +3154,7 @@ canvas.busy{ opacity:.72; }
           setTimeout(() => seg.classList.remove('justlocked'), 440);
         }
       }
+      updateScrubMarkers();
       if(pgCount) pgCount.textContent = committed + ' / 4';
       if(!reduce){
         // Briefly show this phase's detected frame while its bar pops.
