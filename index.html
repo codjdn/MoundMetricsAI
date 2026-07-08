@@ -421,7 +421,7 @@ canvas.busy{ opacity:.72; }
 .ov-help{
   top:10px; right:14px;
   width:34px; height:34px; border-radius:9px;
-  background:var(--stage-glass); backdrop-filter:blur(7px);
+  background:rgba(13,17,25,.92); backdrop-filter:blur(7px);
   border:1px solid var(--stage-line);
   color:#fff; cursor:pointer;
   font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:17px; line-height:1;
@@ -667,7 +667,7 @@ canvas.busy{ opacity:.72; }
    generous so the longest label ("Generate report") still fits comfortably. */
 .video-actions-bar{
   flex:none; display:flex; gap:10px; align-items:stretch; justify-content:center;
-  background:var(--card); padding:8px 16px;
+  background:rgba(237,240,244,.94); padding:8px 16px;
   border-top:1px solid var(--line);
 }
 .video-actions-bar > *{ flex:1 1 0; max-width:220px; align-self:stretch; text-align:center; padding:8px 18px; font-size:14px; }
@@ -1154,9 +1154,11 @@ canvas.busy{ opacity:.72; }
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
+  .ws-progress{ padding:5px 16px 4px; }
+  .ws-progress .pg-seg{ gap:1px; }
   .ws-progress .pg-name{ font-size:10.5px; }
   .ws-progress .pg-node{ width:26px; height:26px; }
-  .ws-progress .pg-link{ flex-basis:24px; margin-top:12px; }
+  .ws-progress .pg-link{ flex-basis:24px; height:4px; margin-top:11px; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
