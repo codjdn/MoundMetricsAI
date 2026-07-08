@@ -87,6 +87,10 @@ body.mode-workspace .app{ max-width:none; padding:0; overflow:hidden; height:cal
 
 .hidden{ display:none !important; }
 button{ font-family:inherit; }
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
 
 /* ---------- shared type utilities ---------- */
 .eyebrow{
@@ -334,32 +338,9 @@ canvas.busy{ opacity:.72; }
 .ov{ position:absolute; z-index:5; transition:opacity .2s ease; }
 .video-col.playing .ov.ov-autohide{ opacity:0; pointer-events:none; }
 
-/* phase tabs across the top of the video */
-.ov-phases{
-  top:10px; left:50%; transform:translateX(-50%);
-  display:flex; gap:4px;
-  background:var(--stage-glass); backdrop-filter:blur(6px);
-  border:1px solid var(--stage-line); border-radius:9px; padding:4px;
-  max-width:calc(100% - 20px);
-}
-.phase-tab{
-  background:transparent; border:1px solid transparent; color:rgba(255,255,255,.62);
-  border-radius:6px; padding:7px 12px;
-  font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:13px; letter-spacing:.06em; text-transform:uppercase;
-  cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;
-  transition:color .15s ease, background .15s ease;
-}
-.phase-tab:hover{ color:#fff; background:rgba(255,255,255,.1); }
-.phase-tab.active{ color:var(--stage); background:var(--trace); }
-.phase-tab .check{ color:var(--good); font-size:13px; }
-.phase-tab.active .check{ color:var(--stage); }
-.phase-tab .frac{ font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:.85; }
-.phase-tab .tnum{ opacity:.6; font-size:10px; font-family:'IBM Plex Mono',monospace; }
-
-/* the coach banner — current instruction, collapsible */
+/* the coach banner — current instruction, collapsible into a "pullout tab", pinned top-left */
 .ov-coach{
-  top:58px; left:14px;
+  top:10px; left:14px;
   display:flex; align-items:flex-start; gap:11px;
   background:var(--stage-glass); backdrop-filter:blur(7px);
   border:1px solid var(--stage-line); border-left:3px solid var(--trace);
@@ -399,9 +380,9 @@ canvas.busy{ opacity:.72; }
 .ov-coach.collapsed .coach-text{ display:none; }
 .ov-coach.collapsed .coach-collapse{ transform:rotate(180deg); }
 
-/* the "?" help button */
+/* the "?" help button — pinned top-right, mirrors the pullout coach tab */
 .ov-help{
-  top:58px; right:14px;
+  top:10px; right:14px;
   width:34px; height:34px; border-radius:9px;
   background:var(--stage-glass); backdrop-filter:blur(7px);
   border:1px solid var(--stage-line);
@@ -437,53 +418,88 @@ canvas.busy{ opacity:.72; }
 .ov-focuschip #focusChipBack:hover{ filter:brightness(1.06); }
 .ov-focuschip #focusChipBack:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
 
-/* progress strip — the four "bases" of the delivery */
+/* progress strip — phase switcher + "how far am I" meter, merged into one
+   centered stepper. Each node IS a phase tab: click to jump to that phase. */
 .ws-progress{
-  flex:none; display:flex; align-items:center; gap:14px;
-  padding:10px 16px; background:var(--card);
+  flex:none; display:flex; justify-content:center;
+  padding:14px 16px 12px; background:var(--card);
   border-bottom:1px solid var(--line);
 }
-.ws-progress .pg-label{
-  font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:12.5px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--muted); white-space:nowrap;
+.ws-progress .pg-track{
+  display:flex; align-items:flex-start; width:100%; max-width:560px;
 }
-.ws-progress .pg-label b{ color:var(--ink); font-family:'IBM Plex Mono',monospace; letter-spacing:0; }
-.ws-progress .pg-track{ flex:1; display:flex; gap:16px; }
 .ws-progress .pg-seg{
-  position:relative;
-  flex:1; height:5px; border-radius:99px; background:var(--line);
-  transition:background .2s;
+  position:relative; flex:1 1 0; min-width:0;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  background:none; border:none; padding:2px 2px 0; margin:0; cursor:pointer;
+  font-family:inherit;
 }
-/* diamond "base" marker at the end of each segment */
-.ws-progress .pg-seg::after{
-  content:''; position:absolute; right:-11px; top:50%;
-  width:9px; height:9px; transform:translateY(-50%) rotate(45deg);
-  background:var(--card); border:1.5px solid var(--muted); border-radius:1.5px;
-  transition:background .2s, border-color .2s;
+.ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:4px; border-radius:10px; }
+
+.ws-progress .pg-node{
+  position:relative; width:32px; height:32px; border-radius:50%;
+  background:var(--well); border:2px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
-.ws-progress .pg-seg.done{ background:var(--good); }
-.ws-progress .pg-seg.done::after{ background:var(--good); border-color:var(--good); }
-.ws-progress .pg-seg.current::after{ border-color:var(--navy); background:#fff; box-shadow:0 0 0 3px rgba(29,58,99,.18); }
+.ws-progress .pg-seg:hover .pg-node{ border-color:var(--navy); }
+.ws-progress .pg-num{
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px;
+  color:var(--muted); transition:opacity .15s ease, transform .15s ease;
+}
+.ws-progress .pg-check{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:15px; opacity:0; transform:scale(.4);
+  transition:opacity .15s ease, transform .15s ease;
+}
+.ws-progress .pg-name{
+  font-family:'Barlow Condensed',sans-serif; font-weight:600;
+  font-size:12px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); white-space:nowrap; transition:color .2s ease;
+}
+
+/* connecting rail between nodes — fills in once the phase before it is done */
+.ws-progress .pg-link{
+  flex:0 1 60px; height:2px; margin-top:15px; border-radius:2px;
+  background:var(--line); transition:background .25s ease;
+}
+.ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
+
+/* current phase */
+.ws-progress .pg-seg.current .pg-node{ border-color:var(--navy); background:#fff; box-shadow:0 0 0 4px rgba(29,58,99,.14); }
+.ws-progress .pg-seg.current .pg-num{ color:var(--navy); }
+.ws-progress .pg-seg.current .pg-name{ color:var(--ink); }
+
+/* done phase — node fills solid with a check */
+.ws-progress .pg-seg.done .pg-node{ background:var(--good); border-color:var(--good); }
+.ws-progress .pg-seg.done .pg-num{ opacity:0; transform:scale(.5); }
+.ws-progress .pg-seg.done .pg-check{ opacity:1; transform:scale(1); }
+.ws-progress .pg-seg.done .pg-name{ color:var(--good); }
+
+/* mini scan meter under the node — invisible until auto-detect sweeps through */
+.ws-progress .pg-meter{
+  position:relative; width:26px; height:3px; border-radius:99px;
+  background:var(--line); overflow:hidden; opacity:0; transition:opacity .15s ease;
+}
+.ws-progress .pg-seg.scanning .pg-meter{ opacity:1; }
+.ws-progress .pg-seg.scanning .pg-node{ border-color:var(--navy); }
 .ws-progress .pg-fill{
-  position:absolute; left:0; top:0; bottom:0; width:0; border-radius:99px;
-  background:var(--navy); opacity:0; transition:width .1s linear; overflow:hidden;
+  position:absolute; left:0; top:0; bottom:0; width:0;
+  background:var(--navy); transition:width .1s linear; overflow:hidden;
 }
-.ws-progress .pg-seg.scanning .pg-fill{ opacity:1; }
 .ws-progress .pg-seg.scanning .pg-fill::after{
   content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
   background-size:60% 100%; background-repeat:no-repeat;
   animation:pgShimmer 1s linear infinite;
 }
 @keyframes pgShimmer{ 0%{ background-position:-120% 0; } 100%{ background-position:240% 0; } }
-@keyframes pgPop{ 0%{ transform:translateY(-50%) rotate(45deg) scale(1); } 42%{ transform:translateY(-50%) rotate(45deg) scale(1.7); } 100%{ transform:translateY(-50%) rotate(45deg) scale(1); } }
-.ws-progress .pg-seg.justlocked::after{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
+@keyframes pgPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.3); } 100%{ transform:scale(1); } }
+.ws-progress .pg-seg.justlocked .pg-node{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
 @media (prefers-reduced-motion:reduce){
   .ws-progress .pg-seg.scanning .pg-fill::after{ animation:none; }
-  .ws-progress .pg-seg.justlocked::after{ animation:none; }
+  .ws-progress .pg-seg.justlocked .pg-node{ animation:none; }
 }
-@media (max-width:520px){ .ws-progress .pg-label .pg-words{ display:none; } }
 
 /* first-run step intro */
 .intro-scrim{
@@ -609,13 +625,15 @@ canvas.busy{ opacity:.72; }
 .rail-head .ph-num{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); }
 .frame-note{ font-size:11.5px; color:var(--muted); font-family:'IBM Plex Mono',monospace; margin-bottom:12px; min-height:15px; }
 
-/* primary action bar: pinned under the video, drives the whole workflow */
+/* primary action bar: pinned under the video, drives the whole workflow.
+   Shorter vertically than a standard primary button; horizontal padding kept
+   generous so the longest label ("Generate report") still fits comfortably. */
 .video-actions-bar{
   flex:none; display:flex; gap:10px; align-items:stretch; justify-content:center;
-  background:var(--card); padding:12px 16px;
+  background:var(--card); padding:8px 16px;
   border-top:1px solid var(--line);
 }
-.video-actions-bar > *{ flex:1 1 0; max-width:220px; align-self:stretch; text-align:center; padding:12px; }
+.video-actions-bar > *{ flex:1 1 0; max-width:220px; align-self:stretch; text-align:center; padding:8px 18px; font-size:14px; }
 
 /* collapsible help */
 .help-disc{ border:1px solid var(--line); border-radius:8px; margin-bottom:14px; background:var(--well); overflow:hidden; }
@@ -1094,10 +1112,14 @@ canvas.busy{ opacity:.72; }
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
-  .ov-phases{ padding:4px; gap:4px; }
-  .phase-tab{ padding:6px 8px; font-size:12px; }
-  .phase-tab .tnum{ display:none; }
+  .ws-progress .pg-name{ font-size:10.5px; }
+  .ws-progress .pg-node{ width:26px; height:26px; }
+  .ws-progress .pg-link{ flex-basis:24px; margin-top:12px; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
+  .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
+}
+@media (max-width:420px){
+  .ws-progress .pg-name{ display:none; }
 }
 
 /* =====================================================================
@@ -1359,15 +1381,34 @@ canvas.busy{ opacity:.72; }
       </div>
     </div>
 
-    <!-- progress strip: always-visible "how far am I" indicator -->
+    <!-- progress strip: phase switcher + "how far am I" indicator, combined into one centered stepper -->
     <div class="ws-progress" id="wsProgress">
-      <span class="pg-label"><b id="pgCount">0 / 4</b> <span class="pg-words">frames marked</span></span>
       <div class="pg-track" id="pgTrack">
-        <span class="pg-seg" data-phase="reference"><i class="pg-fill"></i></span>
-        <span class="pg-seg" data-phase="leglift"><i class="pg-fill"></i></span>
-        <span class="pg-seg" data-phase="footplant"><i class="pg-fill"></i></span>
-        <span class="pg-seg" data-phase="release"><i class="pg-fill"></i></span>
+        <button type="button" class="pg-seg phase-tab active" data-phase="reference" aria-label="Step 1 of 4: Reference stance">
+          <span class="pg-node"><span class="pg-num">1</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Reference</span>
+        </button>
+        <span class="pg-link" aria-hidden="true"></span>
+        <button type="button" class="pg-seg phase-tab" data-phase="leglift" aria-label="Step 2 of 4: Leg lift">
+          <span class="pg-node"><span class="pg-num">2</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Leg lift</span>
+        </button>
+        <span class="pg-link" aria-hidden="true"></span>
+        <button type="button" class="pg-seg phase-tab" data-phase="footplant" aria-label="Step 3 of 4: Foot plant">
+          <span class="pg-node"><span class="pg-num">3</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Foot plant</span>
+        </button>
+        <span class="pg-link" aria-hidden="true"></span>
+        <button type="button" class="pg-seg phase-tab" data-phase="release" aria-label="Step 4 of 4: Release">
+          <span class="pg-node"><span class="pg-num">4</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
+          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
+          <span class="pg-name">Release</span>
+        </button>
       </div>
+      <span class="sr-only" id="pgCount" aria-live="polite">0 / 4 frames marked</span>
     </div>
 
     <div class="ws-body">
@@ -1385,19 +1426,11 @@ canvas.busy{ opacity:.72; }
             <button type="button" id="focusChipBack">◂ Back to report</button>
           </div>
 
-          <!-- phase tabs overlaid on top of the video -->
-          <div class="ov ov-phases ov-autohide" id="ovPhases">
-            <button class="phase-tab active" data-phase="reference"><span class="tnum">1</span> Reference</button>
-            <button class="phase-tab" data-phase="leglift"><span class="tnum">2</span> Leg lift</button>
-            <button class="phase-tab" data-phase="footplant"><span class="tnum">3</span> Foot plant</button>
-            <button class="phase-tab" data-phase="release"><span class="tnum">4</span> Release</button>
-          </div>
-
-          <!-- help button: mirrors the coach panel on the LEFT, glassy phase-tab style -->
+          <!-- help button: top-right, mirrors the pullout coach tab pinned top-left -->
           <button class="ov ov-help ov-autohide" id="showStepsBtn" type="button" title="Show the steps" aria-label="Show the steps">?</button>
 
-          <!-- running instruction: the one thing to do right now.
-               Collapsible so it never blocks the pitcher; tucked to the side. -->
+          <!-- running instruction: the one thing to do right now — the "pullout tab".
+               Collapses into a small tab so it never blocks the pitcher. -->
           <div class="ov ov-coach ov-autohide" id="ovCoach">
             <span class="coach-step" id="coachStep">1</span>
             <div class="coach-text">
@@ -2019,9 +2052,8 @@ canvas.busy{ opacity:.72; }
   const railPhaseNum   = document.getElementById('railPhaseNum');
   const checklistCount = document.getElementById('checklistCount');
 
-  // Short human labels used for the phase tabs / rail title
+  // Short human labels used for the coach banner / rail title
   const PHASE_LABEL = { reference:'Reference', leglift:'Peak leg lift', footplant:'Foot plant', release:'Release' };
-  const PHASE_TAB_LABEL = { reference:'Reference', leglift:'Leg lift', footplant:'Foot plant', release:'Release' };
   const PHASE_INDEX = { reference:1, leglift:2, footplant:3, release:4 };
 
   const saveBtn     = document.getElementById('saveBtn');
@@ -3468,21 +3500,6 @@ canvas.busy{ opacity:.72; }
     });
 
     if(checklistCount) checklistCount.textContent = placedHere + ' / ' + list.length;
-
-    phaseTabs.forEach(t => {
-      const p = t.dataset.phase;
-      const placedCount = LANDMARKS[p].filter(lm => state.phases[p].points[lm.key]).length;
-      const totalLm = LANDMARKS[p].length;
-      const allDone = placedCount === totalLm;
-      const label = '<span class="tnum">' + PHASE_INDEX[p] + '</span> ' + PHASE_TAB_LABEL[p];
-      if(allDone){
-        t.innerHTML = label + ' <span class="check">\u2713</span>';
-      } else if(placedCount > 0){
-        t.innerHTML = label + ' <span class="frac">' + placedCount + '/' + totalLm + '</span>';
-      } else {
-        t.innerHTML = label;
-      }
-    });
 
     updateProgress();
   }
