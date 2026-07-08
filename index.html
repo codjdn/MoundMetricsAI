@@ -1117,13 +1117,17 @@ canvas.busy{ opacity:.72; }
   .landmark-checklist{ grid-template-columns:1fr; }
 }
 @media (max-width:720px){
-  .ws-body{ flex-direction:column; }
+  /* Video gets a constant share of the screen instead of ballooning to fill
+     whatever the report doesn't need — the report flexes to fill the rest
+     and scrolls internally (see .report-scroll), so it stays readable
+     whether it's a one-line prompt or a full delivery report. */
+  .ws-body{ flex-direction:column; flex:0 0 56vh; min-height:0; }
   .video-col{ flex:1; min-height:0; }
   .side-col{
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
-  .report-slot{ max-height:46vh; }
+  .report-slot{ flex:1; min-height:0; max-height:none; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
