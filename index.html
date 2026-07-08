@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mound Metrics AI — Delivery Analysis</title>
 <meta name="description" content="Upload a side-view pitching video and get frame-by-frame delivery mechanics feedback. Runs entirely in your browser — video is never uploaded.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%231D3A63%22/><text x=%2250%22 y=%2266%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-family=%22sans-serif%22>M</text></svg>">
@@ -66,7 +66,7 @@
   --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
 }
 
-html,body{ height:100%; overflow:hidden; }
+html,body{ height:100%; overflow:hidden; touch-action:manipulation; }
 
 body{
   font-family:'Barlow',system-ui,sans-serif;
@@ -2435,6 +2435,10 @@ canvas.busy{ opacity:.72; }
     state.currentPhase = 'reference';
 
     try{
+      setProgress(4, 'Reading frame rate…');
+      if(videoFrameDur == null){
+        try{ videoFrameDur = await measureFrameDur(); }catch(_){ videoFrameDur = 1/30; }
+      }
       setProgress(8, 'Warming up…');
       startProgressTrickle('Loading the pose model…');
       await ensurePoseReady();
@@ -2787,11 +2791,23 @@ canvas.busy{ opacity:.72; }
     btn.addEventListener('click', () => {
       video.pause();
       previewActive = true;
-      const step = parseFloat(btn.dataset.step);
+      const rawStep = parseFloat(btn.dataset.step);
+      // The ±0.033 buttons mean "one frame" at an assumed 30fps — use the
+      // clip's real measured frame duration instead so slow-motion (60/120/
+      // 240fps) footage steps exactly one frame per click.
+      const step = (Math.abs(rawStep) < 0.1)
+        ? Math.sign(rawStep) * (videoFrameDur || Math.abs(rawStep))
+        : rawStep;
       video.currentTime = clamp(video.currentTime + step, 0, video.duration || 0);
       // 'seeked' fires after this and refreshes the live preview.
     });
   });
+
+  // Tracks an active mouse/touch drag on the scrub slider so updateTimeUI()
+  // doesn't fight the user by rewriting scrub.value mid-drag.
+  let isScrubbing = false;
+  scrub.addEventListener('pointerdown', () => { isScrubbing = true; });
+  window.addEventListener('pointerup', () => { isScrubbing = false; });
 
   scrub.addEventListener('input', () => {
     // Scrubbing is a frame-hunting action, so pause for precise control.
@@ -2803,7 +2819,7 @@ canvas.busy{ opacity:.72; }
 
   function updateTimeUI(){
     timeLabel.textContent = video.currentTime.toFixed(2) + 's';
-    scrub.value = video.currentTime;
+    if(!isScrubbing) scrub.value = video.currentTime;
   }
 
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
@@ -3207,6 +3223,7 @@ canvas.busy{ opacity:.72; }
     railMarkBtn.disabled = true;
     autoDetectBtn.disabled = true;
 
+    try{
     // Learn this clip's frame rate so picks can be nudged by exact frames.
     if(videoFrameDur == null){
       autoDetectLabel.textContent = 'Reading frame rate…';
@@ -3481,16 +3498,20 @@ canvas.busy{ opacity:.72; }
     updateReportButton();
     updateProgress();
 
-    canvas.classList.remove('busy');
-    canvasBusy.classList.add('hidden');
-    railMarkBtn.disabled = false;
-    autoDetectBtn.disabled = false;
-    autoDetectLabel.textContent = 'Auto-detect';
-    busyDetect = false;
-
     frameNote.textContent = (committed === 0)
       ? 'Auto-detect couldn’t read the body — mark the frames manually.'
       : 'Auto-detected ' + committed + ' of 4 frames — review each phase and re-mark any that look off.';
+    }catch(err){
+      console.error('Auto-detect failed:', err);
+      frameNote.textContent = 'Auto-detect hit an error and stopped — try again or mark frames manually.';
+    }finally{
+      canvas.classList.remove('busy');
+      canvasBusy.classList.add('hidden');
+      railMarkBtn.disabled = false;
+      autoDetectBtn.disabled = false;
+      autoDetectLabel.textContent = 'Auto-detect';
+      busyDetect = false;
+    }
   }
 
   if(autoDetectBtn) autoDetectBtn.addEventListener('click', () => { autoDetectPhases(); });
