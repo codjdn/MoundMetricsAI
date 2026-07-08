@@ -184,9 +184,14 @@ body.mode-workspace .hdr-ws-only{ display:inline-flex !important; }
   .mode-toggle-btn{ padding:8px 12px; font-size:13px; letter-spacing:.05em; }
 }
 @media (max-width:520px){
-  .app-header{ grid-template-columns:auto 1fr auto; }
-  .app-header .hdr-brand{ font-size:0; }
+  .app-header{ padding:0 10px; gap:6px; }
+  .app-header .hdr-brand{ font-size:12px; letter-spacing:.02em; }
   .mode-toggle-btn{ padding:7px 9px; }
+  .back-btn{ padding:7px 8px; }
+  .back-btn .back-btn-label{ display:none; }
+}
+@media (max-width:400px){
+  .mode-toggle-btn{ padding:6px 7px; font-size:11.5px; letter-spacing:.03em; }
 }
 
 /* ---------- setup ---------- */
@@ -422,7 +427,7 @@ canvas.busy{ opacity:.72; }
    centered stepper. Each node IS a phase tab: click to jump to that phase. */
 .ws-progress{
   flex:none; display:flex; justify-content:center;
-  padding:14px 16px 12px; background:var(--card);
+  padding:8px 16px 7px; background:var(--card);
   border-bottom:1px solid var(--line);
 }
 .ws-progress .pg-track{
@@ -430,37 +435,37 @@ canvas.busy{ opacity:.72; }
 }
 .ws-progress .pg-seg{
   position:relative; flex:1 1 0; min-width:0;
-  display:flex; flex-direction:column; align-items:center; gap:6px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
   background:none; border:none; padding:2px 2px 0; margin:0; cursor:pointer;
   font-family:inherit;
 }
 .ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:4px; border-radius:10px; }
 
 .ws-progress .pg-node{
-  position:relative; width:32px; height:32px; border-radius:50%;
+  position:relative; width:26px; height:26px; border-radius:50%;
   background:var(--well); border:2px solid var(--line);
   display:flex; align-items:center; justify-content:center;
   transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 .ws-progress .pg-seg:hover .pg-node{ border-color:var(--navy); }
 .ws-progress .pg-num{
-  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px;
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px;
   color:var(--muted); transition:opacity .15s ease, transform .15s ease;
 }
 .ws-progress .pg-check{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  color:#fff; font-size:15px; opacity:0; transform:scale(.4);
+  color:#fff; font-size:13px; opacity:0; transform:scale(.4);
   transition:opacity .15s ease, transform .15s ease;
 }
 .ws-progress .pg-name{
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:12px; letter-spacing:.05em; text-transform:uppercase;
+  font-size:11px; letter-spacing:.05em; text-transform:uppercase;
   color:var(--muted); white-space:nowrap; transition:color .2s ease;
 }
 
 /* connecting rail between nodes — fills in once the phase before it is done */
 .ws-progress .pg-link{
-  flex:0 1 60px; height:2px; margin-top:15px; border-radius:2px;
+  flex:0 1 60px; height:2px; margin-top:12px; border-radius:2px;
   background:var(--line); transition:background .25s ease;
 }
 .ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
@@ -1119,7 +1124,7 @@ canvas.busy{ opacity:.72; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
 @media (max-width:420px){
-  .ws-progress .pg-name{ display:none; }
+  .ws-progress .pg-name{ font-size:9px; letter-spacing:.02em; }
 }
 
 /* =====================================================================
@@ -1233,7 +1238,7 @@ canvas.busy{ opacity:.72; }
 
   <div class="hdr-right">
     <span class="ws-save-status hdr-ws-only" id="saveStatus"></span>
-    <button class="back-btn hdr-ws-only" id="backToUploadBtn" title="Choose another video" aria-label="Choose another video">← Back</button>
+    <button class="back-btn hdr-ws-only" id="backToUploadBtn" title="Choose another video" aria-label="Choose another video">← <span class="back-btn-label">Back</span></button>
   </div>
 </header>
 
