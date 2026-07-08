@@ -967,10 +967,20 @@ canvas.busy{ opacity:.72; }
   border:1px solid var(--line-light);
   position:relative;
   box-shadow:var(--glass-shadow);
-  transition:border-color .15s ease, box-shadow .15s ease;
+  transition:border-color .15s ease, box-shadow .15s ease, transform .25s cubic-bezier(.2,.8,.2,1);
 }
 .metric-card:hover{ border-color:#B9C4D4; box-shadow:0 3px 12px rgba(20,33,58,.08); }
 .metric-card.flagged{ border-left:3px solid var(--flag); }
+
+/* focused = the card currently shown on the video; pops forward a touch and
+   sits above its neighbors, but never leaves the report-scroll box, so it
+   can't creep up over the video. */
+.metric-card.focused{
+  transform:scale(1.02);
+  border-color:var(--navy);
+  box-shadow:0 10px 28px rgba(20,33,58,.18), 0 0 0 2px rgba(11,61,145,.12);
+  z-index:1;
+}
 
 .metric-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
 .metric-head h3{ font-family:'Barlow',sans-serif; font-size:13.5px; font-weight:600; color:var(--ink); line-height:1.25; }
@@ -1007,9 +1017,67 @@ canvas.busy{ opacity:.72; }
 .metric-card:not(.flagged) .gauge-value{ color:var(--good); }
 
 .metric-card.clickable{ cursor:pointer; }
-.metric-card.clickable:hover{ border-color:var(--navy); }
-.metric-card .metric-jump{ display:none; font-size:11px; color:var(--navy); margin-top:8px; font-weight:600; }
-.metric-card.clickable:hover .metric-jump{ display:block; }
+.metric-card.clickable:hover,
+.metric-card.clickable:focus-visible{
+  border-color:var(--navy); box-shadow:0 4px 16px rgba(20,33,58,.12); transform:translateY(-1px);
+}
+.metric-card.clickable:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
+.metric-card.clickable.focused:hover{ transform:scale(1.02); }
+
+/* always-on invite to tap — not hover-only, so touch users see it too */
+.metric-card .metric-jump{
+  display:flex; align-items:center; gap:6px; width:fit-content;
+  font-size:11px; color:var(--navy); margin-top:10px; font-weight:600;
+  padding:5px 10px; border-radius:99px; background:var(--well);
+  transition:background .15s ease, color .15s ease;
+}
+.metric-card .metric-jump .mj-dot{
+  flex:none; width:6px; height:6px; border-radius:50%; background:var(--trace);
+  animation:mjPulse 2.2s ease-out infinite;
+}
+@keyframes mjPulse{
+  0%{ box-shadow:0 0 0 0 rgba(200,245,66,.55); }
+  70%{ box-shadow:0 0 0 6px rgba(200,245,66,0); }
+  100%{ box-shadow:0 0 0 0 rgba(200,245,66,0); }
+}
+.metric-card.clickable:hover .metric-jump,
+.metric-card.clickable:focus-visible .metric-jump{ background:var(--navy); color:#fff; }
+.metric-card.clickable:hover .metric-jump .mj-dot,
+.metric-card.clickable:focus-visible .metric-jump .mj-dot{ background:#fff; }
+
+/* banner that appears inside the focused card, offering a way back without
+   hunting for the chip on the video */
+.card-focus-bar{
+  display:none; align-items:center; gap:8px;
+  margin:-16px -18px 12px; padding:8px 10px 8px 18px;
+  background:var(--navy); color:#fff; border-radius:10px 10px 0 0;
+  font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:11.5px;
+  letter-spacing:.04em; text-transform:uppercase;
+}
+.metric-card.focused .card-focus-bar{ display:flex; }
+.card-focus-bar .cfb-dot{
+  flex:none; width:7px; height:7px; border-radius:50%;
+  background:var(--trace); box-shadow:0 0 6px rgba(200,245,66,.7);
+}
+.card-focus-bar .cfb-label{ flex:1; }
+.card-focus-bar .card-back-btn{
+  flex:none; background:rgba(255,255,255,.16); color:#fff; border:none;
+  border-radius:6px; padding:4px 10px; cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:.05em;
+  text-transform:uppercase; font-weight:600; transition:background .15s ease;
+}
+.card-focus-bar .card-back-btn:hover{ background:rgba(255,255,255,.3); }
+.card-focus-bar .card-back-btn:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+
+/* hint banner above the grid — makes the tap-to-inspect feature discoverable
+   instead of relying on the user finding it by accident */
+.report-hint{
+  display:flex; align-items:center; gap:8px;
+  font-size:12.5px; color:var(--navy); font-weight:600;
+  background:var(--well); border:1px dashed rgba(11,61,145,.35);
+  border-radius:10px; padding:10px 14px; margin-bottom:14px;
+}
+.report-hint .rh-icon{ color:var(--trace); font-size:14px; flex:none; }
 
 /* top priorities */
 .report-priorities{
@@ -1227,6 +1295,8 @@ canvas.busy{ opacity:.72; }
   .disclaimer strong{ color:#1b1b1b !important; }
   .actions{ display:none !important; }
   .metric-jump{ display:none !important; }
+  .report-hint, .card-focus-bar{ display:none !important; }
+  .metric-card.focused{ transform:none !important; box-shadow:none !important; }
 }
 
 /* =====================================================================
@@ -1619,6 +1689,10 @@ canvas.busy{ opacity:.72; }
           <div class="report-takeaway hidden" id="reportTakeaway"></div>
           <div class="report-summary" id="reportSummary"></div>
           <div class="report-priorities hidden" id="reportPriorities"></div>
+          <div class="report-hint" id="reportHint">
+            <span class="rh-icon" aria-hidden="true">&#10022;</span>
+            Tap any metric below to see exactly where it shows up on your video.
+          </div>
           <div class="report-grid" id="reportGrid"></div>
 
           <div class="disclaimer">
@@ -3442,6 +3516,10 @@ canvas.busy{ opacity:.72; }
     state.focusMetric = null;
     state.focusValueText = '';
     if(focusChip) focusChip.classList.add('hidden');
+    if(reportGrid){
+      const prev = reportGrid.querySelector('.metric-card.focused');
+      if(prev) prev.classList.remove('focused');
+    }
     if(redraw && wasOn) drawFrame();
   }
 
@@ -3450,6 +3528,33 @@ canvas.busy{ opacity:.72; }
     const chip = focusChip.querySelector('#focusChipLabel');
     if(chip) chip.textContent = metricName;
     focusChip.classList.remove('hidden');
+  }
+
+  // Scrolls the *internal* report-scroll container (never the page/window) so
+  // the popped-out card is centered in the space below the floating report
+  // header, and clamps to the container's own scroll range — it can't scroll
+  // far enough to disturb the video, which lives in a separate box above.
+  function scrollToFocusedCard(card){
+    const scroller = reportPanel && reportPanel.querySelector('.report-scroll');
+    if(!scroller || !card) return;
+    const headH = parseFloat(getComputedStyle(reportPanel).getPropertyValue('--rh-h')) || 46;
+    const scRect = scroller.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const cardTopInScroller = (cardRect.top - scRect.top) + scroller.scrollTop;
+    const viewH = Math.max(0, scroller.clientHeight - headH);
+    let target = cardTopInScroller - headH - Math.max(0, (viewH - cardRect.height) / 2);
+    target = Math.max(0, Math.min(target, scroller.scrollHeight - scroller.clientHeight));
+    scroller.scrollTo({ top: target, behavior: 'smooth' });
+  }
+
+  function focusMetricCard(key){
+    if(!reportGrid) return;
+    const prev = reportGrid.querySelector('.metric-card.focused');
+    if(prev) prev.classList.remove('focused');
+    const card = reportGrid.querySelector('.metric-card[data-metric="' + key + '"]');
+    if(!card) return;
+    card.classList.add('focused');
+    scrollToFocusedCard(card);
   }
 
   function jumpToMetric(key, valueText){
@@ -3462,6 +3567,7 @@ canvas.busy{ opacity:.72; }
     setPhase(phase);     // seeks to the committed frame; 'seeked' will redraw
     const spec = METRIC_BASE.find(s => s.key === key);
     showFocusChip(spec ? spec.simpleName : key);
+    focusMetricCard(key);
   }
 
   function activateMetricEl(card){
@@ -3905,12 +4011,13 @@ canvas.busy{ opacity:.72; }
     const clickable = key && METRIC_VIS[key];
     return '<div class="metric-card' + (isGood ? '' : ' flagged') + (clickable ? ' clickable' : '') + '"' +
       (clickable ? ' data-metric="' + key + '" data-value="' + escapeHtml(valueText) + '" tabindex="0" role="button"' : '') + '>' +
+      (clickable ? '<div class="card-focus-bar"><span class="cfb-dot" aria-hidden="true"></span><span class="cfb-label">Shown on video</span><button type="button" class="card-back-btn">&#9668; Back to report</button></div>' : '') +
       '<div class="metric-head"><h3>' + title + '</h3>' +
       '<span class="badge ' + (isGood ? 'badge-good' : 'badge-flag') + '">' + (isGood ? 'Typical range' : 'Worth a look') + '</span></div>' +
       gauge(value, displayRange, goodRange) +
       '<div class="gauge-value">' + valueText + '</div>' +
       '<p class="metric-note">' + note + '</p>' +
-      (clickable ? '<div class="metric-jump">Show me on the frame →</div>' : '') +
+      (clickable ? '<div class="metric-jump"><span class="mj-dot" aria-hidden="true"></span>Show me on the frame →</div>' : '') +
       '</div>';
   }
 
@@ -4359,11 +4466,13 @@ canvas.busy{ opacity:.72; }
   // Clickable metric cards: jump to annotated frame
   if(reportGrid){
     reportGrid.addEventListener('click', (e) => {
+      if(e.target.closest('.card-back-btn')){ clearFocus(true); return; }
       const card = e.target.closest('.metric-card.clickable');
       if(card) activateMetricEl(card);
     });
     reportGrid.addEventListener('keydown', (e) => {
       if(e.key === 'Enter' || e.key === ' '){
+        if(e.target.closest('.card-back-btn')) return; // button handles its own activation
         const card = e.target.closest('.metric-card.clickable');
         if(card){ e.preventDefault(); activateMetricEl(card); }
       }
