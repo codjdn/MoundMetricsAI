@@ -609,29 +609,13 @@ canvas.busy{ opacity:.72; }
 .rail-head .ph-num{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); }
 .frame-note{ font-size:11.5px; color:var(--muted); font-family:'IBM Plex Mono',monospace; margin-bottom:12px; min-height:15px; }
 
-.rail-actions-row{
-  flex:none; display:flex; gap:8px; align-items:stretch;
+/* primary action bar: pinned under the video, drives the whole workflow */
+.video-actions-bar{
+  flex:none; display:flex; gap:10px; align-items:stretch;
   background:var(--card); padding:12px 16px;
-  border-bottom:1px solid var(--line);
+  border-top:1px solid var(--line);
 }
-.rail-mark-btn{ flex:1; text-align:center; padding:12px; }
-.secondary-btn{
-  display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  background:transparent; border:1.5px solid var(--navy);
-  color:var(--navy); border-radius:var(--radius);
-  font-family:'Barlow Condensed',sans-serif; font-weight:600; letter-spacing:.08em;
-  text-transform:uppercase; font-size:15px; padding:12px 16px;
-  cursor:pointer;
-  transition:background .15s ease, color .15s ease, transform .12s ease;
-}
-.secondary-btn:hover:not(:disabled){ background:var(--navy); color:#fff; transform:translateY(-1px); }
-.secondary-btn:active:not(:disabled){ transform:translateY(0); }
-.secondary-btn:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
-.secondary-btn:disabled{ opacity:.4; cursor:not-allowed; }
-.rail-auto-btn{ flex:1; }
-.rail-mark-btn.is-marked{ background:var(--good); }
-.rail-mark-btn.is-marked:hover:not(:disabled){ background:#186541; }
-.rail-mark-btn:disabled{ opacity:.4; }
+#autoDetectBtn{ flex:1.3; text-align:center; padding:12px; }
 
 /* collapsible help */
 .help-disc{ border:1px solid var(--line); border-radius:8px; margin-bottom:14px; background:var(--well); overflow:hidden; }
@@ -680,9 +664,6 @@ canvas.busy{ opacity:.72; }
 .checklist-foot{ font-size:11px; color:var(--muted); margin-top:10px; }
 .checklist-foot .swatch{ display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; margin:0 3px 0 6px; }
 
-/* rail footer actions */
-.rail-foot{ flex:none; border-top:1px solid var(--line); padding:12px 16px; display:flex; gap:10px; background:var(--card); }
-
 .save-btn-wrapper{
   flex:1; background:transparent; border:1.5px solid var(--line); color:var(--ink);
   border-radius:var(--radius); padding:11px 8px;
@@ -723,7 +704,7 @@ canvas.busy{ opacity:.72; }
 .ghost-btn:hover{ border-color:var(--navy); color:var(--navy); }
 .ghost-btn:focus-visible{ outline:2px solid var(--navy); }
 .ghost-btn:disabled{ opacity:.4; cursor:not-allowed; }
-.rail-foot .primary-btn{ flex:1; align-self:stretch; padding:11px 8px; text-align:center; }
+.video-actions-bar .primary-btn{ flex:1; align-self:stretch; padding:11px 8px; text-align:center; }
 
 /* ---------- modals ---------- */
 .modal-overlay{ position:fixed; inset:0; background:rgba(20,33,58,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:80; }
@@ -1103,7 +1084,7 @@ canvas.busy{ opacity:.72; }
 }
 @media (max-width:720px){
   .ws-body{ flex-direction:column; }
-  .video-col{ flex:none; height:46vh; }
+  .video-col{ flex:none; height:40vh; }
   .side-col{
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
@@ -1233,7 +1214,7 @@ canvas.busy{ opacity:.72; }
   <header class="hero">
     <div class="eyebrow">Frame-by-frame delivery analysis</div>
     <h1>Mound Metrics AI</h1>
-    <p class="sub">Upload a side-view pitching video and the built-in pose AI tracks the pitcher's joints in real time as you play it back. You scrub to each key moment of the delivery yourself — reference stance, peak leg lift, foot plant, and release — and tap "Mark this frame" to lock it in, then the app compares the resulting angles and ratios to general ranges from pitching biomechanics research.</p>
+    <p class="sub">Upload a side-view pitching video and the built-in pose AI tracks the pitcher's joints in real time as you play it back. Tap "Auto-detect" and the AI finds each key moment of the delivery for you — reference stance, peak leg lift, foot plant, and release — then the app compares the resulting angles and ratios to general ranges from pitching biomechanics research.</p>
   </header>
 
   <!-- ============ FIRST-VISIT NOTICE ============ -->
@@ -1358,8 +1339,8 @@ canvas.busy{ opacity:.72; }
     <div class="intro-scrim hidden" id="introScrim">
       <div class="intro-card" role="dialog" aria-modal="true" aria-labelledby="introTitle">
         <div class="intro-eyebrow">How this works</div>
-        <h3 id="introTitle">Mark four moments of the delivery</h3>
-        <p class="intro-lead">You drive the AI. Play or scrub the video to each moment below, then lock it in. The app reads the joint angles and builds your report.</p>
+        <h3 id="introTitle">Auto-detect finds four moments of the delivery</h3>
+        <p class="intro-lead">Tap <b>Auto-detect</b> and the AI scans the clip and locks in each moment below on its own. Review the picks, then the app reads the joint angles and builds your report.</p>
         <ol class="intro-steps">
           <li><span class="n" data-n="1">1</span><div><div class="s-title">Reference stance</div><div class="s-body">A still, upright frame before leg lift — sets the size scale.</div></div></li>
           <li><span class="n" data-n="2">2</span><div><div class="s-title">Peak leg lift</div><div class="s-body">Front knee at its highest point.</div></div></li>
@@ -1367,7 +1348,7 @@ canvas.busy{ opacity:.72; }
           <li><span class="n" data-n="4">4</span><div><div class="s-title">Release</div><div class="s-body">The frame the ball leaves the hand.</div></div></li>
         </ol>
         <div class="intro-actions">
-          <button class="primary-btn" id="introStartBtn">Start with the reference frame</button>
+          <button class="primary-btn" id="introStartBtn">Got it</button>
           <button class="intro-skip" id="introSkipBtn">Skip</button>
         </div>
       </div>
@@ -1427,28 +1408,30 @@ canvas.busy{ opacity:.72; }
 
           <!-- playback bar pinned to bottom of the video -->
           <div class="ov ov-playbar" id="ovPlaybar">
-            <button class="step-wide" data-step="-0.5" title="Back 0.5s">«½s</button>
-            <button data-step="-0.033" title="Back one frame">−1f</button>
             <button id="playBtn" title="Play / pause" aria-label="Play / pause">
               <!-- icon swapped by JS; start as play arrow -->
               <svg id="playIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5V2.5z"/></svg>
             </button>
-            <button data-step="0.033" title="Forward one frame">+1f</button>
-            <button class="step-wide" data-step="0.5" title="Forward 0.5s">½s»</button>
             <input type="range" id="scrub" min="0" max="1" step="0.001" value="0">
             <span id="timeLabel">0.00s</span>
           </div>
+        </div>
+
+        <!-- primary action bar: auto-detect drives the whole workflow, then save / generate report -->
+        <div class="video-actions-bar" id="videoActionsBar">
+          <button class="primary-btn" id="autoDetectBtn" type="button" title="Let the AI scan the clip and suggest all four frames">
+            <span id="autoDetectLabel">Auto-detect</span>
+          </button>
+          <button class="save-btn-wrapper" id="saveBtn">
+            <span class="save-label" id="saveLabel">Save</span>
+            <span class="save-error-icon hidden" id="saveErrorIcon" title="Error saving">ⓘ</span>
+          </button>
+          <button class="primary-btn" id="reportBtn" disabled>Generate report</button>
         </div>
       </div>
 
       <!-- ---------- side rail ---------- -->
       <aside class="side-col" id="sideCol">
-        <div class="rail-actions-row">
-          <button class="primary-btn rail-mark-btn" id="railMarkBtn"><span id="railMarkLabel">Mark this frame</span></button>
-          <button class="secondary-btn rail-auto-btn" id="autoDetectBtn" type="button" title="Let the AI scan the clip and suggest all four frames">
-            <span id="autoDetectLabel">Auto-detect</span>
-          </button>
-        </div>
         <div class="rail-scroll">
           <div class="rail-head">
             <h2 id="railPhaseTitle">Reference</h2>
@@ -1559,14 +1542,6 @@ canvas.busy{ opacity:.72; }
             <span class="swatch" style="background:var(--flag)"></span>low confidence
           </p>
         </div>
-
-        <div class="rail-foot">
-          <button class="save-btn-wrapper" id="saveBtn">
-            <span class="save-label" id="saveLabel">Save</span>
-            <span class="save-error-icon hidden" id="saveErrorIcon" title="Error saving">ⓘ</span>
-          </button>
-          <button class="primary-btn" id="reportBtn" disabled>Generate report</button>
-        </div>
       </aside>
     </div>
   </section>
@@ -1633,7 +1608,7 @@ canvas.busy{ opacity:.72; }
     <div class="report-grid" id="reportGrid"></div>
 
     <div class="disclaimer">
-      <p><strong>What this is, and isn't.</strong> The AI estimates joint positions from a single camera angle on the frames you mark, and the app compares the resulting angles and ratios to general ranges seen in pitching biomechanics research. It's a rough 2D estimate, not a 3D motion-capture measurement, and the AI can misplace joints in a side view — always sanity-check the dots against the video, and re-mark a cleaner frame if they look off.</p>
+      <p><strong>What this is, and isn't.</strong> The AI estimates joint positions from a single camera angle on the frames Auto-detect picks, and the app compares the resulting angles and ratios to general ranges seen in pitching biomechanics research. It's a rough 2D estimate, not a 3D motion-capture measurement, and the AI can misplace joints in a side view — always sanity-check the dots against the video, and run Auto-detect again if they look off.</p>
       <p>Everyone's mechanics vary with body type, mobility, and pitch type — landing outside a "typical range" here isn't a diagnosis of a problem, and landing inside one isn't a guarantee of safety or velocity. Treat these as talking points.</p>
       <p>For anything related to injury risk in particular — especially elbow and shoulder stress — a pitching coach, athletic trainer, or sports medicine / biomechanics lab can give a far more precise and individualized assessment than a single video ever can.</p>
     </div>
@@ -1837,10 +1812,10 @@ canvas.busy{ opacity:.72; }
   const PHASE_ORDER = ['reference','leglift','footplant','release'];
 
   const PHASE_TEXT = {
-    reference: "Scrub to a standing frame before leg lift — pitcher upright, feet at stance width — then tap \u201CMark this frame.\u201D This sets the height scale used for all ratios. L/R labels are anatomical (your left = camera left for a side view).",
-    leglift: "Scrub to the peak of the leg lift — balanced over the back leg with the front knee at its highest — then mark it. Used for lift height, trunk balance, and arm position at the start of the delivery.",
-    footplant: "Scrub to the frame where the front foot first contacts the ground, then mark it. Used for stride, front-knee bend, back-leg drive, glove arm, trunk posture, and throwing-arm position.",
-    release: "Scrub to the frame where the ball leaves the hand, then mark it. Used for shoulder tilt, trunk lean, throwing-elbow extension, hip drive, and front-leg bracing. Only the throwing arm is tracked here."
+    reference: "A standing frame before leg lift — pitcher upright, feet at stance width. Sets the height scale used for all ratios. L/R labels are anatomical (your left = camera left for a side view).",
+    leglift: "The peak of the leg lift — balanced over the back leg with the front knee at its highest. Used for lift height, trunk balance, and arm position at the start of the delivery.",
+    footplant: "The frame where the front foot first contacts the ground. Used for stride, front-knee bend, back-leg drive, glove arm, trunk posture, and throwing-arm position.",
+    release: "The frame where the ball leaves the hand. Used for shoulder tilt, trunk lean, throwing-elbow extension, hip drive, and front-leg bracing. Only the throwing arm is tracked here."
   };
 
   // One-line "find this moment" prompts for the always-visible coach banner.
@@ -2003,13 +1978,10 @@ canvas.busy{ opacity:.72; }
   const phaseTabs   = document.querySelectorAll('.phase-tab');
   const phaseInstr  = document.getElementById('phaseInstructions');
   const frameNote   = document.getElementById('frameNote');
-  const markBtn   = document.getElementById('markBtn'); // overlay button removed; may be null
   const checklist = document.getElementById('checklist');
   const reportBtn = document.getElementById('reportBtn');
 
   // new guidance elements
-  const railMarkBtn  = document.getElementById('railMarkBtn');
-  const railMarkLabel = document.getElementById('railMarkLabel');
   const ovCoach    = document.getElementById('ovCoach');
   const coachStep  = document.getElementById('coachStep');
   const coachTitle = document.getElementById('coachTitle');
@@ -2757,22 +2729,6 @@ canvas.busy{ opacity:.72; }
     liveBusy = false;
   }
 
-  document.querySelectorAll('.ov-playbar button[data-step]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      video.pause();
-      previewActive = true;
-      const rawStep = parseFloat(btn.dataset.step);
-      // The ±0.033 buttons mean "one frame" at an assumed 30fps — use the
-      // clip's real measured frame duration instead so slow-motion (60/120/
-      // 240fps) footage steps exactly one frame per click.
-      const step = (Math.abs(rawStep) < 0.1)
-        ? Math.sign(rawStep) * (videoFrameDur || Math.abs(rawStep))
-        : rawStep;
-      video.currentTime = clamp(video.currentTime + step, 0, video.duration || 0);
-      // 'seeked' fires after this and refreshes the live preview.
-    });
-  });
-
   // Tracks an active mouse/touch drag on the scrub slider so updateTimeUI()
   // doesn't fight the user by rewriting scrub.value mid-drag.
   let isScrubbing = false;
@@ -2997,7 +2953,7 @@ canvas.busy{ opacity:.72; }
       // first, then refresh the live preview so dots follow the body cleanly.
       liveLm = null;
       previewActive = true;
-      frameNote.textContent = 'Not marked yet — scrub to this moment, then "Mark this frame"';
+      frameNote.textContent = 'Not marked yet — tap "Auto-detect" to find and lock in this moment.';
       drawFrame();
       requestLiveDetect();
     }
@@ -3023,20 +2979,14 @@ canvas.busy{ opacity:.72; }
       coachStep.textContent = '\u2713';
       coachTitle.textContent = 'All phases marked!';
       coachSub.innerHTML = 'Tap <b>Generate report</b> to see your delivery analysis.';
-      railMarkLabel.textContent = 'Re-mark this frame';
-      railMarkBtn.classList.add('is-marked');
     } else if(marked){
       coachStep.textContent = PHASE_INDEX[phase];
       coachTitle.textContent = PHASE_LABEL[phase];
-      coachSub.innerHTML = 'Marked. Re-mark a cleaner frame anytime, or move to the next phase.';
-      railMarkLabel.textContent = 'Re-mark this frame';
-      railMarkBtn.classList.add('is-marked');
+      coachSub.innerHTML = 'Marked. Move to the next phase, or run <b>Auto-detect</b> again if it looks off.';
     } else {
       coachStep.textContent = PHASE_INDEX[phase];
       coachTitle.textContent = PHASE_LABEL[phase];
-      coachSub.innerHTML = PHASE_COACH[phase] + ', then press <b>Mark this frame</b>';
-      railMarkLabel.textContent = 'Mark this frame';
-      railMarkBtn.classList.remove('is-marked');
+      coachSub.innerHTML = PHASE_COACH[phase] + '. Tap <b>Auto-detect</b> below to lock in all four phases.';
     }
   }
 
@@ -3049,62 +2999,6 @@ canvas.busy{ opacity:.72; }
       seg.classList.toggle('current', p === state.currentPhase && state.phases[p].time === null);
     });
   }
-  //    placed now — no automatic phase guessing, no hand-dragging. ──
-  async function markCurrentFrame(){
-    if(!poseReady || busyDetect || !state.detected) return;
-    busyDetect = true;
-    canvas.classList.add('busy');
-    canvasBusy.classList.remove('hidden');
-    if(markBtn) markBtn.disabled = true;
-    railMarkBtn.disabled = true;
-
-    drawVideoCropped(offctx, off);
-    let ok = false;
-    try{
-      const lm = await withTimeout(detect(off), 20000);
-      if(lm){
-        const phase = state.currentPhase;
-        const wasUnmarked = state.phases[phase].time === null;
-        state.phases[phase].points = mapLandmarks(lm, phase, canvas.width, canvas.height);
-        state.phases[phase].lm = lm;
-        state.phases[phase].time = video.currentTime;
-        // Lock in the committed dots: stop showing the live preview so the
-        // saved positions are what's drawn until the user scrubs again.
-        previewActive = false;
-        liveLm = null;
-        frameNote.textContent = 'Marked at ' + video.currentTime.toFixed(2) + 's';
-        updateChecklist();
-        updateCoach();
-        drawFrame();
-        updateReportButton();
-        ok = true;
-
-        // After a fresh mark, advance to the next unmarked phase so the user
-        // moves through the delivery without an extra tap. Re-marking an
-        // already-marked phase stays put so coaches can fine-tune.
-        if(wasUnmarked){
-          const next = PHASE_ORDER.find(p => state.phases[p].time === null);
-          if(next){
-            setPhase(next);
-          }
-        }
-      }
-    }catch(e){}
-
-    if(!ok){
-      frameNote.textContent = 'Couldn\u2019t find the body on this frame — try another frame.';
-    }
-
-    canvas.classList.remove('busy');
-    canvasBusy.classList.add('hidden');
-    if(markBtn) markBtn.disabled = false;
-    railMarkBtn.disabled = false;
-    busyDetect = false;
-  }
-
-  if(markBtn) markBtn.addEventListener('click', () => { markCurrentFrame(); });
-  railMarkBtn.addEventListener('click', () => { markCurrentFrame(); });
-
   // ===============================================================
   // AUTO-DETECT VISUALIZATION
   // ===============================================================
@@ -3190,7 +3084,6 @@ canvas.busy{ opacity:.72; }
     liveLm = null;
     canvas.classList.add('busy');
     canvasBusy.classList.remove('hidden');
-    railMarkBtn.disabled = true;
     autoDetectBtn.disabled = true;
 
     try{
@@ -3469,15 +3362,14 @@ canvas.busy{ opacity:.72; }
     updateProgress();
 
     frameNote.textContent = (committed === 0)
-      ? 'Auto-detect couldn’t read the body — mark the frames manually.'
-      : 'Auto-detected ' + committed + ' of 4 frames — review each phase and re-mark any that look off.';
+      ? 'Auto-detect couldn’t read the body — try a clearer, closer side-view clip.'
+      : 'Auto-detected ' + committed + ' of 4 frames — review each phase and run it again if any look off.';
     }catch(err){
       console.error('Auto-detect failed:', err);
-      frameNote.textContent = 'Auto-detect hit an error and stopped — try again or mark frames manually.';
+      frameNote.textContent = 'Auto-detect hit an error and stopped — try again.';
     }finally{
       canvas.classList.remove('busy');
       canvasBusy.classList.add('hidden');
-      railMarkBtn.disabled = false;
       autoDetectBtn.disabled = false;
       autoDetectLabel.textContent = 'Auto-detect';
       busyDetect = false;
@@ -4295,13 +4187,13 @@ canvas.busy{ opacity:.72; }
     const missingCount = METRIC_SPECS.length - totalCount;
     let summaryNote = '<span class="count">' + goodCount + ' / ' + totalCount + '</span> of the measurements we could compute fall within the ranges commonly seen in pitching biomechanics research.';
     if(missingCount > 0){
-      summaryNote += ' <span style="color:var(--muted);">(' + missingCount + ' metric' + (missingCount > 1 ? 's' : '') + ' skipped — mark the frames for those phases to unlock them.)</span>';
+      summaryNote += ' <span style="color:var(--muted);">(' + missingCount + ' metric' + (missingCount > 1 ? 's' : '') + ' skipped — run Auto-detect to unlock them.)</span>';
     }
     summaryNote += ' The cards below break down each one \u2014 read the "worth a look" ones as starting points for a conversation with a coach, not as diagnoses.';
 
     if(totalCount === 0){
       reportTakeaway.classList.add('hidden');
-      reportSummary.innerHTML = '<span style="color:var(--flag);">No metrics could be computed yet.</span> Go back and mark the frame for at least one phase to see results.';
+      reportSummary.innerHTML = '<span style="color:var(--flag);">No metrics could be computed yet.</span> Go back and run Auto-detect to see results.';
       reportGrid.innerHTML = '';
       return;
     }
@@ -5374,7 +5266,7 @@ canvas.busy{ opacity:.72; }
       // Empty state: prompt the user to analyze a pitch first.
       if(records.length === 0){
         drillsIntro.textContent = '';
-        drillsBody.innerHTML = '<div class="progress-empty">No analyses to build drills from for <strong>' + escapeHtml(whoTxt) + '</strong> yet. Go to the <strong>Workspace</strong>, mark a pitch and tap <strong>Generate report</strong>, then <strong>Save</strong> it — your drills will appear here, targeting whatever the latest session flagged.</div>';
+        drillsBody.innerHTML = '<div class="progress-empty">No analyses to build drills from for <strong>' + escapeHtml(whoTxt) + '</strong> yet. Go to the <strong>Workspace</strong>, run <strong>Auto-detect</strong> on a pitch and tap <strong>Generate report</strong>, then <strong>Save</strong> it — your drills will appear here, targeting whatever the latest session flagged.</div>';
         return;
       }
 
