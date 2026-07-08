@@ -88,13 +88,13 @@ body{
 }
 
 /* ---------- glassmorphism: shared frosted-glass treatment ---------- */
-.panel, .app-header, .mode-toggle, .upload-zone, .ws-progress, .intro-card,
+.panel, .app-header, .mode-toggle, .upload-zone, .report-slot, .intro-card,
 .side-col, .video-actions-bar, .help-disc, .modal, .saved-item, .progress-empty,
 .trend-card, .drill-area, .panel-topbar, .report-head, .metric-card,
 .report-priorities, .report-takeaway, .report-thumb, .filming-tips, .proc-bar,
 .notice-banner, .saved-item-actions button, .athlete-mini-btn, .ghost-btn,
 .back-btn, .field-select, input[type=number], .modal input[type=text],
-.seg-btn, .report-scrim, .modal-overlay, .report-drawer{
+.seg-btn, .modal-overlay, .report-inline{
   backdrop-filter:var(--glass-blur-soft);
   -webkit-backdrop-filter:var(--glass-blur-soft);
 }
@@ -455,88 +455,17 @@ canvas.busy{ opacity:.72; }
 .ov-focuschip #focusChipBack:hover{ filter:brightness(1.06); }
 .ov-focuschip #focusChipBack:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
 
-/* progress strip — phase switcher + "how far am I" meter, merged into one
-   centered stepper. Each node IS a phase tab: click to jump to that phase. */
-.ws-progress{
-  flex:none; display:flex; justify-content:center;
-  padding:8px 16px 7px; background:var(--card);
-  border-bottom:1px solid var(--line);
+/* report slot — lives where the phase-progress stepper used to be. Shows a
+   prompt to run Auto-detect until a report exists, then the report itself. */
+.report-slot{
+  flex:none; background:var(--card); border-bottom:1px solid var(--line);
+  max-height:46vh; display:flex; flex-direction:column; overflow:hidden;
 }
-.ws-progress .pg-track{
-  display:flex; align-items:flex-start; width:100%; max-width:560px;
+.report-prompt{
+  padding:14px 20px; text-align:center; font-size:13.5px; color:var(--muted);
 }
-.ws-progress .pg-seg{
-  position:relative; flex:1 1 0; min-width:0;
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-  background:none; border:none; padding:2px 2px 0; margin:0; cursor:pointer;
-  font-family:inherit;
-}
-.ws-progress .pg-seg:focus-visible{ outline:2px solid var(--navy); outline-offset:4px; border-radius:10px; }
-
-.ws-progress .pg-node{
-  position:relative; width:26px; height:26px; border-radius:50%;
-  background:var(--well); border:2px solid var(--line);
-  display:flex; align-items:center; justify-content:center;
-  transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
-}
-.ws-progress .pg-seg:hover .pg-node{ border-color:var(--navy); }
-.ws-progress .pg-num{
-  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px;
-  color:var(--muted); transition:opacity .15s ease, transform .15s ease;
-}
-.ws-progress .pg-check{
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  color:#fff; font-size:13px; opacity:0; transform:scale(.4);
-  transition:opacity .15s ease, transform .15s ease;
-}
-.ws-progress .pg-name{
-  font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:11px; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); white-space:nowrap; transition:color .2s ease;
-}
-
-/* connecting rail between nodes — fills in once the phase before it is done */
-.ws-progress .pg-link{
-  flex:0 1 60px; height:2px; margin-top:12px; border-radius:2px;
-  background:var(--line); transition:background .25s ease;
-}
-.ws-progress .pg-seg.done + .pg-link{ background:var(--good); }
-
-/* current phase */
-.ws-progress .pg-seg.current .pg-node{ border-color:var(--navy); background:#fff; box-shadow:0 0 0 4px rgba(29,58,99,.14); }
-.ws-progress .pg-seg.current .pg-num{ color:var(--navy); }
-.ws-progress .pg-seg.current .pg-name{ color:var(--ink); }
-
-/* done phase — node fills solid with a check */
-.ws-progress .pg-seg.done .pg-node{ background:var(--good); border-color:var(--good); }
-.ws-progress .pg-seg.done .pg-num{ opacity:0; transform:scale(.5); }
-.ws-progress .pg-seg.done .pg-check{ opacity:1; transform:scale(1); }
-.ws-progress .pg-seg.done .pg-name{ color:var(--good); }
-
-/* mini scan meter under the node — invisible until auto-detect sweeps through */
-.ws-progress .pg-meter{
-  position:relative; width:26px; height:3px; border-radius:99px;
-  background:var(--line); overflow:hidden; opacity:0; transition:opacity .15s ease;
-}
-.ws-progress .pg-seg.scanning .pg-meter{ opacity:1; }
-.ws-progress .pg-seg.scanning .pg-node{ border-color:var(--navy); }
-.ws-progress .pg-fill{
-  position:absolute; left:0; top:0; bottom:0; width:0;
-  background:var(--navy); transition:width .1s linear; overflow:hidden;
-}
-.ws-progress .pg-seg.scanning .pg-fill::after{
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
-  background-size:60% 100%; background-repeat:no-repeat;
-  animation:pgShimmer 1s linear infinite;
-}
-@keyframes pgShimmer{ 0%{ background-position:-120% 0; } 100%{ background-position:240% 0; } }
-@keyframes pgPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.3); } 100%{ transform:scale(1); } }
-.ws-progress .pg-seg.justlocked .pg-node{ animation:pgPop .42s cubic-bezier(.4,.0,.2,1); }
-@media (prefers-reduced-motion:reduce){
-  .ws-progress .pg-seg.scanning .pg-fill::after{ animation:none; }
-  .ws-progress .pg-seg.justlocked .pg-node{ animation:none; }
-}
+.report-prompt b{ color:var(--ink); }
+.report-inline{ display:flex; flex-direction:column; min-height:0; }
 
 /* first-run step intro */
 .intro-scrim{
@@ -944,17 +873,8 @@ canvas.busy{ opacity:.72; }
 .modal label.field-label{ margin-bottom:6px; }
 
 /* =====================================================================
-   REPORT — slide-over drawer
+   REPORT — inline, embedded in the report slot
    ===================================================================== */
-.report-drawer{
-  position:fixed; top:0; right:0; height:100vh; height:100dvh; width:min(560px, 92vw);
-  background:rgba(237,240,244,.82); border-left:1px solid var(--line-light); z-index:70;
-  display:flex; flex-direction:column; box-shadow:-12px 0 40px rgba(20,33,58,.22), inset 1px 0 0 rgba(255,255,255,.4);
-  transform:translateX(100%); transition:transform .28s ease;
-}
-.report-drawer.open{ transform:translateX(0); }
-.report-scrim{ position:fixed; inset:0; background:rgba(20,33,58,.4); z-index:65; opacity:0; pointer-events:none; transition:opacity .28s ease; }
-.report-scrim.open{ opacity:1; pointer-events:auto; }
 .report-head{
   flex:none; display:flex; align-items:center; gap:12px; padding:15px 20px;
   border-bottom:1px solid var(--line); background:var(--card);
@@ -972,14 +892,6 @@ canvas.busy{ opacity:.72; }
 .report-head-actions .ghost-btn{
   flex:none; padding:4px 12px; font-size:10.5px; letter-spacing:.05em; line-height:1.4;
 }
-.report-close{
-  background:transparent; border:1px solid var(--line); color:var(--muted);
-  border-radius:6px; width:34px; height:34px;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition:border-color .15s, color .15s;
-}
-.report-close:hover{ border-color:var(--ink); color:var(--ink); }
-.report-close svg{ width:14px; height:14px; fill:currentColor; pointer-events:none; }
 .report-scroll{ flex:1; overflow-y:auto; padding:20px; }
 
 .report-summary{ font-size:14.5px; margin-bottom:20px; }
@@ -1123,9 +1035,6 @@ canvas.busy{ opacity:.72; }
 .ov-coach.all-done .coach-step{ background:var(--good); color:#fff; }
 .ov-coach.all-done .coach-title{ color:#8CD9AC; }
 
-.primary-btn.report-glow{ box-shadow:0 0 0 2px rgba(30,123,77,.35), 0 2px 10px rgba(30,123,77,.25); background:linear-gradient(135deg, var(--good), #145C39); }
-.primary-btn.report-glow:hover:not(:disabled){ background:linear-gradient(135deg, #186541, #0F4A2B); }
-
 /* =====================================================================
    REPORT — print header / frame thumbnails
    ===================================================================== */
@@ -1154,16 +1063,9 @@ canvas.busy{ opacity:.72; }
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
-  .ws-progress{ padding:5px 16px 4px; }
-  .ws-progress .pg-seg{ gap:1px; }
-  .ws-progress .pg-name{ font-size:10.5px; }
-  .ws-progress .pg-node{ width:26px; height:26px; }
-  .ws-progress .pg-link{ flex-basis:24px; height:4px; margin-top:11px; }
+  .report-slot{ max-height:34vh; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
-}
-@media (max-width:420px){
-  .ws-progress .pg-name{ font-size:9px; letter-spacing:.02em; }
 }
 
 /* =====================================================================
@@ -1188,18 +1090,28 @@ canvas.busy{ opacity:.72; }
     height:auto !important; overflow:visible !important;
     background:#fff !important; color:#1b1b1b !important;
   }
-  body.mode-workspace .app, .app, .app-header,
-  #progressPanel, #drillsPanel, .report-scrim,
-  #cropModalOverlay, #saveModalOverlay, #workspacePanel{
+  .app-header,
+  #progressPanel, #drillsPanel,
+  #cropModalOverlay, #saveModalOverlay,
+  #setupPanel, #processingPanel{
     display:none !important;
   }
-  .report-drawer{
-    position:static !important; transform:none !important;
-    width:100% !important; height:auto !important; max-width:none !important;
-    box-shadow:none !important; border:none !important; background:#fff !important;
-    display:block !important; color:#1b1b1b !important;
+  .app{
+    max-width:none !important; padding:0 !important; margin:0 !important;
+    height:auto !important; overflow:visible !important;
   }
-  .report-head, .report-close, #restartBtn, #pdfBtn{ display:none !important; }
+  #workspacePanel{
+    display:block !important; height:auto !important; overflow:visible !important; position:static !important;
+  }
+  #workspacePanel > *:not(.report-slot){ display:none !important; }
+  .report-slot{
+    max-height:none !important; overflow:visible !important; border:none !important; background:#fff !important;
+  }
+  #reportPrompt{ display:none !important; }
+  .report-inline{
+    display:block !important; width:100% !important; color:#1b1b1b !important;
+  }
+  .report-head, #restartBtn, #pdfBtn{ display:none !important; }
   .report-scroll{ overflow:visible !important; padding:0 !important; }
 
   .report-print-head{
@@ -1438,34 +1350,39 @@ canvas.busy{ opacity:.72; }
       </div>
     </div>
 
-    <!-- progress strip: phase switcher + "how far am I" indicator, combined into one centered stepper -->
-    <div class="ws-progress" id="wsProgress">
-      <div class="pg-track" id="pgTrack">
-        <button type="button" class="pg-seg phase-tab active" data-phase="reference" aria-label="Step 1 of 4: Reference stance">
-          <span class="pg-node"><span class="pg-num">1</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Reference</span>
-        </button>
-        <span class="pg-link" aria-hidden="true"></span>
-        <button type="button" class="pg-seg phase-tab" data-phase="leglift" aria-label="Step 2 of 4: Leg lift">
-          <span class="pg-node"><span class="pg-num">2</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Leg lift</span>
-        </button>
-        <span class="pg-link" aria-hidden="true"></span>
-        <button type="button" class="pg-seg phase-tab" data-phase="footplant" aria-label="Step 3 of 4: Foot plant">
-          <span class="pg-node"><span class="pg-num">3</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Foot plant</span>
-        </button>
-        <span class="pg-link" aria-hidden="true"></span>
-        <button type="button" class="pg-seg phase-tab" data-phase="release" aria-label="Step 4 of 4: Release">
-          <span class="pg-node"><span class="pg-num">4</span><span class="pg-check" aria-hidden="true">&#10003;</span></span>
-          <span class="pg-meter" aria-hidden="true"><i class="pg-fill"></i></span>
-          <span class="pg-name">Release</span>
-        </button>
+    <!-- report slot: lives where the phase progress stepper used to be. Shows a
+         nudge to run Auto-detect until a report exists, then the delivery
+         report renders here automatically — no separate drawer. -->
+    <div class="report-slot" id="reportSlot">
+      <div class="report-prompt" id="reportPrompt">
+        <p>Tap <b>Auto-detect</b> below to scan your delivery — your report will appear here.</p>
       </div>
-      <span class="sr-only" id="pgCount" aria-live="polite">0 / 4 frames marked</span>
+      <div class="report-inline hidden" id="reportPanel">
+        <div class="report-head">
+          <h2>Delivery report</h2>
+          <span class="spacer"></span>
+          <div class="report-head-actions">
+            <button class="ghost-btn" id="pdfBtn" title="Save the report as a PDF">Save as PDF</button>
+            <button class="ghost-btn" id="restartBtn">New video</button>
+          </div>
+        </div>
+        <div class="report-scroll">
+          <!-- print-only branded header; populated by buildReport() -->
+          <div class="report-print-head" id="reportPrintHead" aria-hidden="true"></div>
+          <!-- marked-frame thumbnails for the PDF; populated on "Save as PDF" -->
+          <div class="report-thumbs" id="reportThumbs"></div>
+          <div class="report-takeaway hidden" id="reportTakeaway"></div>
+          <div class="report-summary" id="reportSummary"></div>
+          <div class="report-priorities hidden" id="reportPriorities"></div>
+          <div class="report-grid" id="reportGrid"></div>
+
+          <div class="disclaimer">
+            <p><strong>What this is, and isn't.</strong> The AI estimates joint positions from a single camera angle on the frames Auto-detect picks, and the app compares the resulting angles and ratios to general ranges seen in pitching biomechanics research. It's a rough 2D estimate, not a 3D motion-capture measurement, and the AI can misplace joints in a side view — always sanity-check the dots against the video, and run Auto-detect again if they look off.</p>
+            <p>Everyone's mechanics vary with body type, mobility, and pitch type — landing outside a "typical range" here isn't a diagnosis of a problem, and landing inside one isn't a guarantee of safety or velocity. Treat these as talking points.</p>
+            <p>For anything related to injury risk in particular — especially elbow and shoulder stress — a pitching coach, athletic trainer, or sports medicine / biomechanics lab can give a far more precise and individualized assessment than a single video ever can.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="ws-body">
@@ -1521,7 +1438,6 @@ canvas.busy{ opacity:.72; }
             <span class="save-label" id="saveLabel">Save</span>
             <span class="save-error-icon hidden" id="saveErrorIcon" title="Error saving">ⓘ</span>
           </button>
-          <button class="primary-btn" id="reportBtn" disabled>Generate report</button>
         </div>
       </div>
 
@@ -1679,38 +1595,6 @@ canvas.busy{ opacity:.72; }
     <div class="progress-body" id="drillsBody"></div>
   </div>
 </section>
-
-<!-- ============ REPORT (slide-over drawer) ============ -->
-<div class="report-scrim" id="reportScrim"></div>
-<aside class="report-drawer" id="reportPanel" aria-hidden="true">
-  <div class="report-head">
-    <h2>Delivery report</h2>
-    <span class="spacer"></span>
-    <div class="report-head-actions">
-      <button class="ghost-btn" id="pdfBtn" title="Save the report as a PDF">Save as PDF</button>
-      <button class="ghost-btn" id="restartBtn">New video</button>
-    </div>
-    <button class="report-close" id="backBtn" title="Close report" aria-label="Close report">
-      <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
-  </div>
-  <div class="report-scroll">
-    <!-- print-only branded header; populated by buildReport() -->
-    <div class="report-print-head" id="reportPrintHead" aria-hidden="true"></div>
-    <!-- marked-frame thumbnails for the PDF; populated on "Save as PDF" -->
-    <div class="report-thumbs" id="reportThumbs"></div>
-    <div class="report-takeaway hidden" id="reportTakeaway"></div>
-    <div class="report-summary" id="reportSummary"></div>
-    <div class="report-priorities hidden" id="reportPriorities"></div>
-    <div class="report-grid" id="reportGrid"></div>
-
-    <div class="disclaimer">
-      <p><strong>What this is, and isn't.</strong> The AI estimates joint positions from a single camera angle on the frames Auto-detect picks, and the app compares the resulting angles and ratios to general ranges seen in pitching biomechanics research. It's a rough 2D estimate, not a 3D motion-capture measurement, and the AI can misplace joints in a side view — always sanity-check the dots against the video, and run Auto-detect again if they look off.</p>
-      <p>Everyone's mechanics vary with body type, mobility, and pitch type — landing outside a "typical range" here isn't a diagnosis of a problem, and landing inside one isn't a guarantee of safety or velocity. Treat these as talking points.</p>
-      <p>For anything related to injury risk in particular — especially elbow and shoulder stress — a pitching coach, athletic trainer, or sports medicine / biomechanics lab can give a far more precise and individualized assessment than a single video ever can.</p>
-    </div>
-  </div>
-</aside>
 
 <!-- ============ CROP MODAL ============ -->
 <div class="modal-overlay hidden" id="cropModalOverlay">
@@ -1906,6 +1790,37 @@ canvas.busy{ opacity:.72; }
     ]);
   }
 
+  // Full set of every limb the wireframe can draw, independent of phase. The
+  // metric skeleton always shows whatever the AI actually detected in the
+  // current frame, not a phase-specific subset — missing keys simply don't
+  // draw (handled where pts[key] is looked up), so this doesn't change what
+  // a committed phase's stored points contain, only what's eligible to show.
+  const ALL_LANDMARKS = [
+    { key:'head',   label:'Head' },
+    { key:'l_sh',   label:'Left shoulder' },
+    { key:'r_sh',   label:'Right shoulder' },
+    { key:'l_el',   label:'Left elbow' },
+    { key:'r_el',   label:'Right elbow' },
+    { key:'l_wr',   label:'Left wrist' },
+    { key:'r_wr',   label:'Right wrist' },
+    { key:'l_hip',  label:'Left hip' },
+    { key:'r_hip',  label:'Right hip' },
+    { key:'l_knee', label:'Left knee' },
+    { key:'r_knee', label:'Right knee' },
+    { key:'l_ank',  label:'Left ankle' },
+    { key:'r_ank',  label:'Right ankle' },
+    { key:'ground', label:'Ground level' }
+  ];
+  const ALL_CONNECTIONS = [
+    ['head','l_sh'],['head','r_sh'],['l_sh','r_sh'],
+    ['l_sh','l_el'],['l_el','l_wr'],
+    ['r_sh','r_el'],['r_el','r_wr'],
+    ['l_sh','l_hip'],['r_sh','r_hip'],['l_hip','r_hip'],
+    ['l_hip','l_knee'],['l_knee','l_ank'],
+    ['r_hip','r_knee'],['r_knee','r_ank'],
+    ['head','ground']
+  ];
+
   const PHASE_ORDER = ['reference','leglift','footplant','release'];
 
   const PHASE_TEXT = {
@@ -2072,11 +1987,9 @@ canvas.busy{ opacity:.72; }
   const scrub     = document.getElementById('scrub');
   const timeLabel = document.getElementById('timeLabel');
 
-  const phaseTabs   = document.querySelectorAll('.phase-tab');
   const phaseInstr  = document.getElementById('phaseInstructions');
   const frameNote   = document.getElementById('frameNote');
   const checklist = document.getElementById('checklist');
-  const reportBtn = document.getElementById('reportBtn');
 
   // new guidance elements
   const ovCoach    = document.getElementById('ovCoach');
@@ -2084,8 +1997,6 @@ canvas.busy{ opacity:.72; }
   const coachTitle = document.getElementById('coachTitle');
   const coachSub   = document.getElementById('coachSub');
   const coachCollapse = document.getElementById('coachCollapse');
-  const pgCount    = document.getElementById('pgCount');
-  const pgSegs     = document.querySelectorAll('#pgTrack .pg-seg');
   const focusChip  = document.getElementById('focusChip');
   const focusChipBack = document.getElementById('focusChipBack');
   const introScrim   = document.getElementById('introScrim');
@@ -2093,12 +2004,11 @@ canvas.busy{ opacity:.72; }
   const introSkipBtn  = document.getElementById('introSkipBtn');
   const showStepsBtn  = document.getElementById('showStepsBtn');
 
+  const reportPrompt   = document.getElementById('reportPrompt');
   const reportSummary  = document.getElementById('reportSummary');
   const reportGrid     = document.getElementById('reportGrid');
   const reportPriorities = document.getElementById('reportPriorities');
   const reportTakeaway = document.getElementById('reportTakeaway');
-  const reportScrim    = document.getElementById('reportScrim');
-  const backBtn    = document.getElementById('backBtn');
   const restartBtn = document.getElementById('restartBtn');
 
   // redesigned-layout elements
@@ -2136,7 +2046,6 @@ canvas.busy{ opacity:.72; }
   if(backToMenuBtn){
     backToMenuBtn.addEventListener('click', () => {
       if(window.confirm('Go back to the main menu? Any unsaved changes will remain in the session but you can lose context. Use "Save" first to keep your work.')) {
-        closeReport();
         workspacePanel.classList.add('hidden');
         document.body.classList.remove('mode-workspace');
         setupPanel.classList.remove('hidden');
@@ -2467,6 +2376,9 @@ canvas.busy{ opacity:.72; }
         footplant: { time:null, points:{}, lm:null },
         release:   { time:null, points:{}, lm:null }
       };
+      // Clear any report left showing from a previous video.
+      if(reportPanel) reportPanel.classList.add('hidden');
+      if(reportPrompt) reportPrompt.classList.remove('hidden');
     }
     liveLm = null;
     previewActive = true;
@@ -2492,7 +2404,6 @@ canvas.busy{ opacity:.72; }
       currentMode = 'setup';
       updateModeToggleButtons('setup');
       setPhase('reference');
-      updateReportButton();
       maybeShowIntro();
       window.scrollTo({ top:0, behavior:'smooth' });
     }catch(err){
@@ -2531,7 +2442,6 @@ canvas.busy{ opacity:.72; }
   if(backToUploadBtn){
     backToUploadBtn.addEventListener('click', () => {
       if(window.confirm('Go back to choose a video? Your marked frames stay in the session, but motion tracking will stop. Use "Save" first to keep your work.')){
-        closeReport();
         // Reset detected flag so the workspace tab shows upload, not workspace
         state.detected = false;
         // Directly show setup, hiding everything else
@@ -2659,22 +2569,22 @@ canvas.busy{ opacity:.72; }
     // Shoulders (all phases)
     set('l_sh', MP.L_SH); set('r_sh', MP.R_SH);
 
-    // Elbows
-    if(phase === 'leglift' || phase === 'footplant'){
-      set('l_el', MP.L_EL); set('r_el', MP.R_EL);
-    } else if(phase === 'release'){
-      // Only the throwing-side elbow at release (glove arm not tracked)
+    // Elbows: tracked on every phase so the wireframe always shows every
+    // detected limb, except at release only the throwing-side elbow is kept
+    // (the glove arm is hard to see and unimportant for the metrics there).
+    if(phase === 'release'){
       if(state.handedness === 'right') set('r_el', MP.R_EL);
       else                             set('l_el', MP.L_EL);
+    } else {
+      set('l_el', MP.L_EL); set('r_el', MP.R_EL);
     }
 
-    // Wrists
-    if(phase === 'footplant'){
-      set('l_wr', MP.L_WR); set('r_wr', MP.R_WR);
-    } else if(phase === 'release'){
-      // Only the throwing-side wrist at release (glove arm not tracked)
+    // Wrists: same rule as elbows.
+    if(phase === 'release'){
       if(state.handedness === 'right') set('r_wr', MP.R_WR);
       else                             set('l_wr', MP.L_WR);
+    } else {
+      set('l_wr', MP.L_WR); set('r_wr', MP.R_WR);
     }
 
     // Hips, knees, ankles (all phases)
@@ -2684,8 +2594,8 @@ canvas.busy{ opacity:.72; }
     // Foot index = front (toe) of each foot; used to measure stride toe-to-toe.
     set('l_foot', MP.L_FOOT); set('r_foot', MP.R_FOOT);
 
-    // Ground (reference only): lowest visible ankle/heel point
-    if(phase === 'reference'){
+    // Ground: lowest visible ankle/heel point, on every phase.
+    {
       const candidates = [
         lm[MP.L_ANK], lm[MP.R_ANK], lm[MP.L_HEEL], lm[MP.R_HEEL]
       ];
@@ -2854,7 +2764,7 @@ canvas.busy{ opacity:.72; }
     drawVideoCropped(ctx, canvas);
 
     const phase = state.currentPhase;
-    const list  = LANDMARKS[phase];
+    const list  = ALL_LANDMARKS;
 
     // Decide what to draw:
     //   • Live preview (playing or scrubbing): use the real-time tracked
@@ -2913,7 +2823,7 @@ canvas.busy{ opacity:.72; }
     const MIN_W = 0.7;   // half-thickness at the slimmest mid-point (px)
     ctx.setLineDash([]);
     ctx.lineJoin = 'round';
-    (CONNECTIONS[phase] || []).forEach(([a,b]) => {
+    ALL_CONNECTIONS.forEach(([a,b]) => {
       const pa = pts[a], pb = pts[b];
       if(!pa || !pb) return;
 
@@ -3019,14 +2929,9 @@ canvas.busy{ opacity:.72; }
   // ===============================================================
   // Phase / landmark UI
   // ===============================================================
-  phaseTabs.forEach(tab => {
-    tab.addEventListener('click', () => setPhase(tab.dataset.phase));
-  });
-
   function setPhase(phase){
     state.currentPhase = phase;
 
-    phaseTabs.forEach(t => t.classList.toggle('active', t.dataset.phase === phase));
     phaseInstr.textContent = PHASE_TEXT[phase];
     if(railPhaseTitle) railPhaseTitle.textContent = PHASE_LABEL[phase];
     if(railPhaseNum)   railPhaseNum.textContent = 'Phase ' + PHASE_INDEX[phase] + ' / 4';
@@ -3056,7 +2961,6 @@ canvas.busy{ opacity:.72; }
 
     updateChecklist();
     updateCoach();
-    updateReportButton();
   }
 
   // ===============================================================
@@ -3086,41 +2990,11 @@ canvas.busy{ opacity:.72; }
     }
   }
 
-  function updateProgress(){
-    const done = PHASE_ORDER.filter(p => state.phases[p].time !== null).length;
-    if(pgCount) pgCount.textContent = done + ' / 4';
-    pgSegs.forEach(seg => {
-      const p = seg.dataset.phase;
-      seg.classList.toggle('done', state.phases[p].time !== null);
-      seg.classList.toggle('current', p === state.currentPhase && state.phases[p].time === null);
-    });
-  }
-  // ===============================================================
-  // AUTO-DETECT VISUALIZATION
-  // ===============================================================
-  // Drive the four progress bars as one sweeping meter while auto-detect scans
-  // the clip (progress 0→1). Because the phases occur in time order, the fill
-  // moves through the delivery left→right as the model works.
-  function setScanSweep(progress){
-    if(pgCount) pgCount.textContent = 'Scanning…';
-    pgSegs.forEach((seg, k) => {
-      seg.classList.add('scanning');
-      seg.classList.remove('done','current');
-      const fill = seg.querySelector('.pg-fill');
-      if(fill) fill.style.width = (clamp(progress*4 - k, 0, 1) * 100) + '%';
-    });
-  }
-
-  // Reveal the auto-detected frames one phase at a time: commit each pick, flash
-  // its frame on the canvas, and pop its bar to "done" so the user watches the
-  // four phases lock in rather than appearing all at once. Returns # committed.
+  // Reveal the auto-detected frames one phase at a time: commit each pick and
+  // briefly flash its frame on the canvas, so the user watches the four
+  // phases lock in rather than appearing all at once. Returns # committed.
   async function revealAutoPicks(finals){
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    pgSegs.forEach(seg => {
-      seg.classList.remove('scanning');
-      const fill = seg.querySelector('.pg-fill');
-      if(fill) fill.style.width = '0%';
-    });
     let committed = 0;
     for(let k = 0; k < PHASE_ORDER.length; k++){
       const phase = PHASE_ORDER[k];
@@ -3132,17 +3006,8 @@ canvas.busy{ opacity:.72; }
         lm: s.lm
       };
       committed++;
-      const seg = pgSegs[k];
-      if(seg){
-        seg.classList.add('done');
-        if(!reduce){
-          seg.classList.add('justlocked');
-          setTimeout(() => seg.classList.remove('justlocked'), 440);
-        }
-      }
-      if(pgCount) pgCount.textContent = committed + ' / 4';
       if(!reduce){
-        // Briefly show this phase's detected frame while its bar pops.
+        // Briefly show this phase's detected frame as it locks in.
         state.currentPhase = phase;
         previewActive = false;
         liveLm = null;
@@ -3203,7 +3068,6 @@ canvas.busy{ opacity:.72; }
       const pct = Math.round((i / N) * 100);
       canvasBusy.textContent = 'Scanning ' + pct + '%';
       autoDetectLabel.textContent = 'Scanning… ' + pct + '%';
-      setScanSweep(i / N);
     }
     canvasBusy.textContent = 'Detecting…';   // restore for normal marking
 
@@ -3454,12 +3318,13 @@ canvas.busy{ opacity:.72; }
     setPhase('reference');         // seek back to Reference; 'seeked' redraws
     updateChecklist();
     updateCoach();
-    updateReportButton();
-    updateProgress();
 
     frameNote.textContent = (committed === 0)
       ? 'Auto-detect couldn’t read the body — try a clearer, closer side-view clip.'
       : 'Auto-detected ' + committed + ' of 4 frames — review each phase and run it again if any look off.';
+
+    // Build and show the report inline as soon as we have anything to report on.
+    if(committed > 0) showReport();
     }catch(err){
       console.error('Auto-detect failed:', err);
       frameNote.textContent = 'Auto-detect hit an error and stopped — try again.';
@@ -3492,10 +3357,7 @@ canvas.busy{ opacity:.72; }
     state.focusMetric = null;
     state.focusValueText = '';
     if(focusChip) focusChip.classList.add('hidden');
-    if(redraw && wasOn) {
-      drawFrame();
-      openReport();
-    }
+    if(redraw && wasOn) drawFrame();
   }
 
   function showFocusChip(metricName){
@@ -3512,7 +3374,6 @@ canvas.busy{ opacity:.72; }
     if(!state.phases[phase] || state.phases[phase].time === null) return;
     state.focusMetric = key;
     state.focusValueText = valueText || '';
-    closeReport();
     setPhase(phase);     // seeks to the committed frame; 'seeked' will redraw
     const spec = METRIC_BASE.find(s => s.key === key);
     showFocusChip(spec ? spec.simpleName : key);
@@ -3557,30 +3418,6 @@ canvas.busy{ opacity:.72; }
     });
 
     if(checklistCount) checklistCount.textContent = placedHere + ' / ' + list.length;
-
-    updateProgress();
-  }
-
-  function hasAnyData(){
-    return PHASE_ORDER.some(phase =>
-      Object.keys(state.phases[phase].points).length > 0
-    );
-  }
-
-  function updateReportButton(){
-    reportBtn.disabled = !hasAnyData();
-    const allMarked = PHASE_ORDER.every(p => state.phases[p].time !== null);
-
-    // Persistent glow on the button so it reads as "primary action right now".
-    reportBtn.classList.toggle('report-glow', allMarked);
-
-    // One-time pulse on the transition to all-marked — draws the eye initially.
-    if(allMarked && !reportBtn.dataset.pulsed){
-      reportBtn.classList.add('ready');
-      reportBtn.dataset.pulsed = '1';
-      reportBtn.addEventListener('animationend', () => reportBtn.classList.remove('ready'), { once:true });
-    }
-    if(!allMarked){ delete reportBtn.dataset.pulsed; reportBtn.classList.remove('ready'); }
   }
 
   // ===============================================================
@@ -4308,15 +4145,14 @@ canvas.busy{ opacity:.72; }
     renderPriorities();
   }
 
-  function openReport(){
+  function showReport(){
     buildReport();
     populatePrintHead();
     // Thumbnails are only generated for the PDF (they seek the video), so clear
-    // any stale ones when the report opens fresh.
+    // any stale ones when the report is (re)built.
     if(reportThumbs) reportThumbs.innerHTML = '';
-    reportScrim.classList.add('open');
-    reportPanel.classList.add('open');
-    reportPanel.setAttribute('aria-hidden', 'false');
+    if(reportPrompt) reportPrompt.classList.add('hidden');
+    reportPanel.classList.remove('hidden');
     // Always start the report at the top, even if it was scrolled previously.
     const rs = reportPanel.querySelector('.report-scroll');
     if(rs) rs.scrollTop = 0;
@@ -4393,18 +4229,8 @@ canvas.busy{ opacity:.72; }
       printing = false;
     }, 80);
   });
-  function closeReport(){
-    reportScrim.classList.remove('open');
-    reportPanel.classList.remove('open');
-    reportPanel.setAttribute('aria-hidden', 'true');
-  }
-
-  reportBtn.addEventListener('click', openReport);
-  backBtn.addEventListener('click', closeReport);
-  reportScrim.addEventListener('click', closeReport);
   document.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape' && reportPanel.classList.contains('open')) closeReport();
-    else if(e.key === 'Escape' && state.focusMetric) clearFocus(true);
+    if(e.key === 'Escape' && state.focusMetric) clearFocus(true);
   });
 
   // Clickable metric cards: jump to annotated frame
@@ -4794,7 +4620,7 @@ canvas.busy{ opacity:.72; }
         updateModeToggleButtons('setup');
         setPhase('reference');
         drawFrame();
-        updateReportButton();
+        if(PHASE_ORDER.some(p => state.phases[p].time !== null)) showReport();
         saveStatus.textContent = 'Loaded — saved ' + new Date(rec.savedAt).toLocaleString();
         window.scrollTo({ top:0, behavior:'smooth' });
 
@@ -5235,7 +5061,6 @@ canvas.busy{ opacity:.72; }
     let startX = 0, startY = 0, axis = null, tracking = false;
 
     function swipeBlocked(target){
-      if(reportPanel && reportPanel.classList.contains('open')) return true;
       if(cropModalOverlay && !cropModalOverlay.classList.contains('hidden')) return true;
       if(saveModalOverlay && !saveModalOverlay.classList.contains('hidden')) return true;
       if(introScrim && !introScrim.classList.contains('hidden')) return true;
