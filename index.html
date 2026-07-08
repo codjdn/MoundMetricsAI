@@ -474,14 +474,37 @@ canvas.busy{ opacity:.72; }
    as a fraction of the clip; unmarked phases fall back to an evenly spaced
    placeholder so the four dots don't stack. */
 .scrub-wrap{ position:relative; flex:1 1 0; min-width:60px; display:flex; align-items:center; }
-.scrub-wrap #scrub{ width:100%; }
+/* The thumb is reset to a fixed, known diameter (16px) on every engine so its
+   travel math is predictable: a native range thumb's center moves between
+   (thumbWidth/2) and (trackWidth - thumbWidth/2) as the value goes 0→1. The
+   phase marks below use that exact same 8px (=16/2) inset, so a mark sits
+   precisely on top of wherever the thumb lands for that mark's time —
+   tapping a mark and having the thumb land elsewhere was a mismatch between
+   this inset and each browser's own (unstyled, unpredictable) thumb size. */
+.scrub-wrap #scrub{
+  width:100%; height:16px; margin:0; cursor:pointer;
+  -webkit-appearance:none; appearance:none; background:transparent;
+}
+.scrub-wrap #scrub::-webkit-slider-runnable-track{ height:4px; border-radius:2px; background:rgba(255,255,255,.28); }
+.scrub-wrap #scrub::-webkit-slider-thumb{
+  -webkit-appearance:none; margin-top:-6px;
+  width:16px; height:16px; border-radius:50%;
+  background:var(--trace); border:2px solid rgba(12,16,23,.55); cursor:pointer;
+}
+.scrub-wrap #scrub::-moz-range-track{ height:4px; border-radius:2px; background:rgba(255,255,255,.28); }
+.scrub-wrap #scrub::-moz-range-thumb{
+  width:16px; height:16px; border-radius:50%;
+  background:var(--trace); border:2px solid rgba(12,16,23,.55); cursor:pointer;
+}
+.scrub-wrap #scrub:focus-visible::-webkit-slider-thumb{ outline:2px solid #fff; outline-offset:2px; }
+.scrub-wrap #scrub:focus-visible::-moz-range-thumb{ outline:2px solid #fff; outline-offset:2px; }
 .scrub-marks{
-  position:absolute; left:7px; right:7px; top:50%; height:0;
+  position:absolute; left:8px; right:8px; top:50%; height:0;
   pointer-events:none; z-index:2;
 }
 .scrub-marks .pg-seg{
   position:absolute; top:0; transform:translate(-50%,-50%);
-  width:14px; height:14px; min-width:0; line-height:1; padding:0; margin:0; border-radius:50%;
+  width:18px; height:18px; min-width:0; line-height:1; padding:0; margin:0; border-radius:50%;
   background:rgba(20,33,58,.65); border:1.5px solid rgba(255,255,255,.55); color:#fff;
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; pointer-events:auto; font-family:inherit;
@@ -492,12 +515,12 @@ canvas.busy{ opacity:.72; }
 .scrub-marks .pg-seg:focus-visible{ outline:2px solid var(--trace); outline-offset:2px; }
 
 .scrub-marks .pg-num{
-  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:8px;
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:9px;
   color:#fff; line-height:1; transition:opacity .15s ease, transform .15s ease;
 }
 .scrub-marks .pg-check{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  color:#14213A; font-size:9px; opacity:0; transform:scale(.4);
+  color:#14213A; font-size:10px; opacity:0; transform:scale(.4);
   transition:opacity .15s ease, transform .15s ease;
 }
 
@@ -628,7 +651,7 @@ canvas.busy{ opacity:.72; }
 .ov-playbar #playBtn:focus-visible{ outline:2px solid var(--trace); outline-offset:3px; }
 .ov-playbar #playBtn svg{ width:16px; height:16px; fill:var(--stage); flex-shrink:0; pointer-events:none; }
 
-.ov-playbar input[type=range]{ flex:1; min-width:60px; accent-color:var(--trace); }
+.ov-playbar input[type=range]{ flex:1; min-width:60px; }
 .ov-playbar #timeLabel{
   font-family:'IBM Plex Mono',monospace; font-size:12px;
   color:rgba(255,255,255,.75); min-width:52px; text-align:right; letter-spacing:.02em;
@@ -637,7 +660,9 @@ canvas.busy{ opacity:.72; }
   .ov-playbar #playBtn{ width:48px; height:48px; min-width:48px; }
   .ov-playbar #playBtn svg{ width:18px; height:18px; }
   .ov-playbar button{ min-width:40px; padding:9px 11px; font-size:12px; }
-  .scrub-marks .pg-seg{ width:18px; height:18px; }
+  .scrub-marks .pg-seg{ width:21px; height:21px; }
+  .scrub-marks .pg-num{ font-size:10px; }
+  .scrub-marks .pg-check{ font-size:11px; }
 }
 
 /* ---------- side rail ---------- */
@@ -1121,7 +1146,7 @@ canvas.busy{ opacity:.72; }
      whatever the report doesn't need — the report flexes to fill the rest
      and scrolls internally (see .report-scroll), so it stays readable
      whether it's a one-line prompt or a full delivery report. */
-  .ws-body{ flex-direction:column; flex:0 0 56vh; min-height:0; }
+  .ws-body{ flex-direction:column; flex:0 0 50vh; min-height:0; }
   .video-col{ flex:1; min-height:0; }
   .side-col{
     width:100%; border-left:none; border-top:1px solid var(--line);
@@ -1132,8 +1157,8 @@ canvas.busy{ opacity:.72; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
 @media (max-width:420px){
-  .scrub-marks .pg-seg{ width:12px; height:12px; }
-  .scrub-marks .pg-num{ font-size:7px; }
+  .scrub-marks .pg-seg{ width:15px; height:15px; }
+  .scrub-marks .pg-num{ font-size:8px; }
 }
 
 /* =====================================================================
