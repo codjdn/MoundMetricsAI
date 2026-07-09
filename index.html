@@ -1568,6 +1568,23 @@ body::after{
   60%{ opacity:.7; }
   100%{ transform:scale(1); opacity:0; }
 }
+/* tapping the video (play/pause) splashes a soft glow from the fingertip;
+   slightly slower and greener so it reads on the dark stage */
+.canvas-wrap .ink-ripple{
+  background:radial-gradient(circle, rgba(255,255,255,.34) 0%, rgba(74,222,128,.20) 38%, rgba(74,222,128,0) 70%);
+  animation-duration:.75s;
+}
+/* big glass surfaces (upload zone, cards) get a touch more presence */
+.upload-zone .ink-ripple{
+  background:radial-gradient(circle, rgba(29,58,99,.26) 0%, rgba(29,58,99,.13) 42%, rgba(29,58,99,0) 72%);
+  animation-duration:.8s;
+}
+
+/* ---------- carry the starting page's ambient field everywhere ----------
+   Progress & Drills previously sat on flat paper; letting the body's
+   gradient + drifting color blobs show through keeps the whole app in
+   the same atmosphere. (Their top bars and cards stay frosted glass.) */
+#progressPanel, #drillsPanel{ background:transparent !important; }
 
 /* =====================================================================
    BECKON — a sonar ring pulses out of whichever control is the next
@@ -5960,19 +5977,30 @@ body::after{
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ---------- ink ripple: splash outward from the press point ---------- */
-  var RIPPLE_TARGETS = 'button, .metric-card.clickable, .rp-item, .upload-zone, .help-disc summary';
+  var RIPPLE_TARGETS = [
+    'button',
+    '.metric-card', '.trend-card', '.drill-area', '.saved-item', '.rp-item',
+    '.upload-zone', '.help-disc summary',
+    '.canvas-wrap'                       // the video stage: tap = play/pause
+  ].join(', ');
 
   document.addEventListener('pointerdown', function(e){
     if(reduceMotion && reduceMotion.matches) return;
     if(!e.target || !e.target.closest) return;
     var host = e.target.closest(RIPPLE_TARGETS);
     if(!host || host.disabled) return;
+    // the stage only ripples for taps on the video itself, not for presses
+    // that land on its overlays (scrub bar, playbar chrome, chips)
+    if(host.classList.contains('canvas-wrap') && e.target.closest('.ov')) return;
 
     var rect = host.getBoundingClientRect();
     if(rect.width === 0 || rect.height === 0) return;
     var x = e.clientX - rect.left, y = e.clientY - rect.top;
-    // radius reaches the farthest corner so the splash always fills the shape
+    // radius reaches the farthest corner so the splash always fills the
+    // shape — but on big surfaces (video, upload zone, cards) a capped
+    // fingertip-sized splash reads better than a wall of ink
     var r = Math.hypot(Math.max(x, rect.width - x), Math.max(y, rect.height - y));
+    r = Math.min(r, 300);
 
     var wrap = document.createElement('span');
     wrap.className = 'ink-ripple-wrap';
@@ -5981,11 +6009,14 @@ body::after{
     ink.className = 'ink-ripple';
 
     // pick ink to contrast the button: light text → white splash on a dark
-    // button; dark text → navy splash on a light glass button
-    var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(getComputedStyle(host).color || '');
-    if(m){
-      var lum = 0.299*m[1] + 0.587*m[2] + 0.114*m[3];
-      if(lum < 160) ink.className += ' ink-dark';
+    // button; dark text → navy splash on a light glass button. The video
+    // stage is always dark, so it always takes the light splash.
+    if(!host.classList.contains('canvas-wrap')){
+      var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(getComputedStyle(host).color || '');
+      if(m){
+        var lum = 0.299*m[1] + 0.587*m[2] + 0.114*m[3];
+        if(lum < 160) ink.className += ' ink-dark';
+      }
     }
 
     ink.style.width = ink.style.height = (r*2) + 'px';
