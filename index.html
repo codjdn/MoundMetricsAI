@@ -339,12 +339,17 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 @media (prefers-reduced-motion: reduce){ .primary-btn.ready{ animation:none; } }
 
 /* ---------- shared shine sweep: a soft gradient highlight glides across
-   every button on hover/press, tying the whole button language together ---------- */
+   every button on its own, on a loop, tying the whole button language
+   together (hover/press nudges it to replay immediately) ---------- */
 .primary-btn, .ghost-btn, .save-btn-wrapper, .mode-toggle-btn, .seg-btn,
 .notice-dismiss-btn, .intro-skip, .athlete-mini-btn, .back-btn,
 .saved-item-actions button, #focusChipBack, .card-back-btn, .ov-help,
 .ov-playbar button, .scrub-marks .pg-seg{
   position:relative;
+}
+@keyframes btnShineSweep{
+  0%, 58%{ background-position:220% 40%; }
+  82%, 100%{ background-position:-20% 40%; }
 }
 .primary-btn::after, .ghost-btn::after, .save-btn-wrapper::after, .mode-toggle-btn::after, .seg-btn::after,
 .notice-dismiss-btn::after, .intro-skip::after, .athlete-mini-btn::after, .back-btn::after,
@@ -353,8 +358,19 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
   content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:2;
   background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,.55) 48%, rgba(255,255,255,.15) 52%, transparent 65%);
   background-size:260% 260%; background-position:220% 40%; background-repeat:no-repeat;
-  transition:background-position .55s cubic-bezier(.4,0,.2,1);
+  animation:btnShineSweep 3.4s ease-in-out infinite;
 }
+/* stagger each button family so the whole UI doesn't flash in unison */
+.ghost-btn::after, .seg-btn::after{ animation-delay:.4s; }
+.save-btn-wrapper::after, .athlete-mini-btn::after{ animation-delay:.8s; }
+.mode-toggle-btn::after{ animation-delay:1.2s; }
+.notice-dismiss-btn::after, .intro-skip::after, .back-btn::after{ animation-delay:1.6s; }
+.ov-help::after, .ov-playbar button::after{ animation-delay:2s; }
+.saved-item-actions button::after, .card-back-btn::after, #focusChipBack::after{ animation-delay:2.4s; }
+.scrub-marks .pg-seg:nth-child(2)::after{ animation-delay:.3s; }
+.scrub-marks .pg-seg:nth-child(3)::after{ animation-delay:.6s; }
+.scrub-marks .pg-seg:nth-child(4)::after{ animation-delay:.9s; }
+/* hover/press replays the sweep right away for direct feedback */
 .primary-btn:hover::after, .ghost-btn:hover::after, .save-btn-wrapper:hover::after, .mode-toggle-btn:hover::after, .seg-btn:hover::after,
 .notice-dismiss-btn:hover::after, .intro-skip:hover::after, .athlete-mini-btn:hover::after, .back-btn:hover::after,
 .saved-item-actions button:hover::after, #focusChipBack:hover::after, .card-back-btn:hover::after, .ov-help:hover::after,
@@ -363,7 +379,7 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 .notice-dismiss-btn:active::after, .intro-skip:active::after, .athlete-mini-btn:active::after, .back-btn:active::after,
 .saved-item-actions button:active::after, #focusChipBack:active::after, .card-back-btn:active::after, .ov-help:active::after,
 .ov-playbar button:active::after, .scrub-marks .pg-seg:active::after{
-  background-position:-20% 40%;
+  animation-duration:.6s; animation-delay:0s;
 }
 .primary-btn:disabled::after, .ghost-btn:disabled::after, .save-btn-wrapper:disabled::after, .athlete-mini-btn:disabled::after{
   display:none;
@@ -372,7 +388,7 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
   .primary-btn::after, .ghost-btn::after, .save-btn-wrapper::after, .mode-toggle-btn::after, .seg-btn::after,
   .notice-dismiss-btn::after, .intro-skip::after, .athlete-mini-btn::after, .back-btn::after,
   .saved-item-actions button::after, #focusChipBack::after, .card-back-btn::after, .ov-help::after,
-  .ov-playbar button::after, .scrub-marks .pg-seg::after{ transition:none; }
+  .ov-playbar button::after, .scrub-marks .pg-seg::after{ animation:none; }
 }
 
 /* play / pause flash on the video */
