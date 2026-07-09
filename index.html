@@ -179,10 +179,10 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .mode-toggle{
   justify-self:center; position:relative;
   background:var(--well); border:1px solid var(--line);
-  border-radius:99px; padding:5px; display:flex; gap:4px;
+  border-radius:99px; padding:6px; display:flex; gap:5px;
 }
 .mode-toggle-indicator{
-  position:absolute; top:5px; left:0; height:calc(100% - 10px);
+  position:absolute; top:6px; left:0; height:calc(100% - 12px);
   width:0; border-radius:99px; pointer-events:none; z-index:0;
   background:linear-gradient(135deg, var(--navy), var(--navy-deep));
   box-shadow:0 2px 8px rgba(20,33,58,.35), inset 0 1px 0 rgba(255,255,255,.2);
@@ -194,9 +194,9 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .mode-toggle-btn{
   position:relative; z-index:1;
   background:transparent; border:none; color:var(--muted);
-  border-radius:99px; padding:10px 21px; line-height:1.15;
+  border-radius:99px; padding:11.5px 24px; line-height:1.15;
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:14.5px; letter-spacing:.08em; text-transform:uppercase;
+  font-size:16.5px; letter-spacing:.08em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap;
   transition:color .18s ease;
 }
@@ -338,6 +338,43 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 .primary-btn.ready{ animation:readyPulse 1.8s ease-in-out 3; }
 @media (prefers-reduced-motion: reduce){ .primary-btn.ready{ animation:none; } }
 
+/* ---------- shared shine sweep: a soft gradient highlight glides across
+   every button on hover/press, tying the whole button language together ---------- */
+.primary-btn, .ghost-btn, .save-btn-wrapper, .mode-toggle-btn, .seg-btn,
+.notice-dismiss-btn, .intro-skip, .athlete-mini-btn, .back-btn,
+.saved-item-actions button, #focusChipBack, .card-back-btn, .ov-help,
+.ov-playbar button, .scrub-marks .pg-seg{
+  position:relative;
+}
+.primary-btn::after, .ghost-btn::after, .save-btn-wrapper::after, .mode-toggle-btn::after, .seg-btn::after,
+.notice-dismiss-btn::after, .intro-skip::after, .athlete-mini-btn::after, .back-btn::after,
+.saved-item-actions button::after, #focusChipBack::after, .card-back-btn::after, .ov-help::after,
+.ov-playbar button::after, .scrub-marks .pg-seg::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:2;
+  background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,.55) 48%, rgba(255,255,255,.15) 52%, transparent 65%);
+  background-size:260% 260%; background-position:220% 40%; background-repeat:no-repeat;
+  transition:background-position .55s cubic-bezier(.4,0,.2,1);
+}
+.primary-btn:hover::after, .ghost-btn:hover::after, .save-btn-wrapper:hover::after, .mode-toggle-btn:hover::after, .seg-btn:hover::after,
+.notice-dismiss-btn:hover::after, .intro-skip:hover::after, .athlete-mini-btn:hover::after, .back-btn:hover::after,
+.saved-item-actions button:hover::after, #focusChipBack:hover::after, .card-back-btn:hover::after, .ov-help:hover::after,
+.ov-playbar button:hover::after, .scrub-marks .pg-seg:hover::after,
+.primary-btn:active::after, .ghost-btn:active::after, .save-btn-wrapper:active::after, .mode-toggle-btn:active::after, .seg-btn:active::after,
+.notice-dismiss-btn:active::after, .intro-skip:active::after, .athlete-mini-btn:active::after, .back-btn:active::after,
+.saved-item-actions button:active::after, #focusChipBack:active::after, .card-back-btn:active::after, .ov-help:active::after,
+.ov-playbar button:active::after, .scrub-marks .pg-seg:active::after{
+  background-position:-20% 40%;
+}
+.primary-btn:disabled::after, .ghost-btn:disabled::after, .save-btn-wrapper:disabled::after, .athlete-mini-btn:disabled::after{
+  display:none;
+}
+@media (prefers-reduced-motion: reduce){
+  .primary-btn::after, .ghost-btn::after, .save-btn-wrapper::after, .mode-toggle-btn::after, .seg-btn::after,
+  .notice-dismiss-btn::after, .intro-skip::after, .athlete-mini-btn::after, .back-btn::after,
+  .saved-item-actions button::after, #focusChipBack::after, .card-back-btn::after, .ov-help::after,
+  .ov-playbar button::after, .scrub-marks .pg-seg::after{ transition:none; }
+}
+
 /* play / pause flash on the video */
 .video-overlay-icon{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
@@ -395,26 +432,27 @@ canvas.busy{ opacity:.72; }
 .ov-help:hover{ color:var(--stage); border-color:var(--trace); background:var(--trace); }
 .ov-help:focus-visible{ outline:2px solid var(--trace); outline-offset:2px; }
 
-/* focus chip — jump-to-frame from a report card */
+/* focus chip — jump-to-frame from a report card; pinned to the video's
+   top-left corner, out of the way of the help button on the right */
 .ov-focuschip{
-  top:10px; left:50%; transform:translateX(-50%);
-  display:flex; align-items:center; gap:10px;
+  top:10px; left:10px; transform:none;
+  display:flex; align-items:center; gap:6px;
   background:var(--stage-glass); backdrop-filter:blur(7px);
   border:1px solid rgba(74,222,128,.55); border-radius:99px;
-  padding:7px 9px 7px 15px; box-shadow:0 6px 22px rgba(0,0,0,.42);
+  padding:4px 4px 4px 10px; box-shadow:0 6px 22px rgba(0,0,0,.42);
   max-width:calc(100% - 24px); z-index:8; pointer-events:none;
 }
-.ov-focuschip .fc-dot{ flex:none; width:9px; height:9px; border-radius:50%; background:var(--trace); box-shadow:0 0 8px rgba(74,222,128,.7); }
+.ov-focuschip .fc-dot{ flex:none; width:6px; height:6px; border-radius:50%; background:var(--trace); box-shadow:0 0 6px rgba(74,222,128,.7); }
 .ov-focuschip #focusChipLabel{
   font-family:'Barlow Condensed',sans-serif; font-weight:600;
-  font-size:13.5px; letter-spacing:.04em; text-transform:uppercase;
+  font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
   color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .ov-focuschip #focusChipBack{
-  flex:none; background:var(--trace); color:var(--stage); border:none;
-  border-radius:99px; padding:6px 13px; cursor:pointer;
-  font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:.06em;
-  text-transform:uppercase; font-weight:600; pointer-events:auto;
+  flex:none; width:22px; height:22px; background:var(--trace); color:var(--stage); border:none;
+  border-radius:50%; padding:0; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; pointer-events:auto;
 }
 .ov-focuschip #focusChipBack:hover{ filter:brightness(1.06); }
 .ov-focuschip #focusChipBack:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
@@ -678,7 +716,7 @@ canvas.busy{ opacity:.72; }
    generous so the longest label ("Generate report") still fits comfortably. */
 .video-actions-bar{
   flex:none; display:flex; gap:10px; align-items:stretch; justify-content:center;
-  background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(237,240,244,.72)); padding:8px 16px;
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92)); padding:8px 16px;
   border-top:1px solid var(--line);
 }
 .video-actions-bar > *{ flex:1 1 0; max-width:220px; align-self:stretch; text-align:center; padding:8px 18px; font-size:14px; }
@@ -1565,7 +1603,7 @@ canvas.busy{ opacity:.72; }
           <div class="ov ov-focuschip hidden" id="focusChip">
             <span class="fc-dot" aria-hidden="true"></span>
             <span id="focusChipLabel"></span>
-            <button type="button" id="focusChipBack">◂ Back to report</button>
+            <button type="button" id="focusChipBack" title="Back to report" aria-label="Back to report">◂</button>
           </div>
 
           <!-- help button: top-right -->
