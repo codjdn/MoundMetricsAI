@@ -2091,8 +2091,8 @@ canvas.busy{ opacity:.72; }
     savedName: null,
     savedAthleteId: null,           // athlete the loaded record belongs to
     currentAthleteId: 'all',        // roster filter on setup/trends/drills ('all' = every athlete)
-    focusMetric: null,              // when set, drawFrame() overlays this metric's measurement
-    focusValueText: ''              // formatted value shown on the focus annotation pill
+    focusMetrics: new Map()         // key -> formatted value text; drawFrame() overlays every
+                                     // entry whose phase matches the frame currently shown
   };
 
   // Convenience: is the current crop the full frame?
@@ -3202,12 +3202,14 @@ canvas.busy{ opacity:.72; }
       ctx.fillText(String(i+1), p.x, p.y+0.5);
     });
 
-    // ── Focus annotation: when a report card sent us here, draw that one
-    //    metric's measurement on top so the number maps to a picture. ──
-    if(state.focusMetric && METRIC_VIS[state.focusMetric]
-       && METRIC_VIS[state.focusMetric].phase === phase){
-      drawMetricAnnotation(ctx, pts, state.handedness, state.focusMetric, state.focusValueText);
-    }
+    // ── Focus annotations: every report card the user has toggled on gets
+    //    its measurement drawn here, so several metrics can be shown at once. ──
+    state.focusMetrics.forEach((valueText, key) => {
+      const vis = METRIC_VIS[key];
+      if(vis && vis.phase === phase){
+        drawMetricAnnotation(ctx, pts, state.handedness, key, valueText);
+      }
+    });
   }
 
   // ===============================================================
@@ -3660,24 +3662,40 @@ canvas.busy{ opacity:.72; }
   if(autoDetectBtn) autoDetectBtn.addEventListener('click', () => { autoDetectPhases(); });
 
   // ===============================================================
-  // FOCUS MODE — Click a metric card to jump to its frame + annotation
+  // FOCUS MODE — Click a metric card to toggle its measurement onto the
+  // frame + annotation. Any number of metrics can be active at once; each
+  // is drawn whenever the video is showing that metric's phase.
   // ===============================================================
   function clearFocus(redraw){
-    const wasOn = state.focusMetric != null;
-    state.focusMetric = null;
-    state.focusValueText = '';
+    const wasOn = state.focusMetrics.size > 0;
+    state.focusMetrics.clear();
     if(focusChip) focusChip.classList.add('hidden');
     if(reportGrid){
-      const prev = reportGrid.querySelector('.metric-card.focused');
-      if(prev) prev.classList.remove('focused');
+      reportGrid.querySelectorAll('.metric-card.focused').forEach(el => el.classList.remove('focused'));
     }
     if(redraw && wasOn) drawFrame();
   }
 
-  function showFocusChip(metricName){
+  function unfocusMetric(key, redraw){
+    if(!state.focusMetrics.has(key)) return;
+    state.focusMetrics.delete(key);
+    focusMetricCard(key, false);
+    updateFocusChip();
+    if(redraw) drawFrame();
+  }
+
+  function updateFocusChip(){
     if(!focusChip) return;
+    if(state.focusMetrics.size === 0){
+      focusChip.classList.add('hidden');
+      return;
+    }
+    const names = Array.from(state.focusMetrics.keys()).map(k => {
+      const spec = METRIC_BASE.find(s => s.key === k);
+      return spec ? spec.simpleName : k;
+    });
     const chip = focusChip.querySelector('#focusChipLabel');
-    if(chip) chip.textContent = metricName;
+    if(chip) chip.textContent = names.length <= 2 ? names.join(' + ') : names.length + ' metrics shown';
     focusChip.classList.remove('hidden');
   }
 
@@ -3698,12 +3716,11 @@ canvas.busy{ opacity:.72; }
     scroller.scrollTo({ top: target, behavior: 'smooth' });
   }
 
-  function focusMetricCard(key){
+  function focusMetricCard(key, on){
     if(!reportGrid) return;
-    const prev = reportGrid.querySelector('.metric-card.focused');
-    if(prev) prev.classList.remove('focused');
     const card = reportGrid.querySelector('.metric-card[data-metric="' + key + '"]');
     if(!card) return;
+    if(on === false){ card.classList.remove('focused'); return; }
     card.classList.add('focused');
     scrollToFocusedCard(card);
   }
@@ -3711,14 +3728,16 @@ canvas.busy{ opacity:.72; }
   function jumpToMetric(key, valueText){
     const vis = METRIC_VIS[key];
     if(!vis) return;
+    if(state.focusMetrics.has(key)){
+      unfocusMetric(key, true);
+      return;
+    }
     const phase = vis.phase;
     if(!state.phases[phase] || state.phases[phase].time === null) return;
-    state.focusMetric = key;
-    state.focusValueText = valueText || '';
+    state.focusMetrics.set(key, valueText || '');
+    updateFocusChip();
+    focusMetricCard(key, true);
     setPhase(phase);     // seeks to the committed frame; 'seeked' will redraw
-    const spec = METRIC_BASE.find(s => s.key === key);
-    showFocusChip(spec ? spec.simpleName : key);
-    focusMetricCard(key);
   }
 
   function activateMetricEl(card){
@@ -4162,7 +4181,7 @@ canvas.busy{ opacity:.72; }
     const clickable = key && METRIC_VIS[key];
     return '<div class="metric-card' + (isGood ? '' : ' flagged') + (clickable ? ' clickable' : '') + '"' +
       (clickable ? ' data-metric="' + key + '" data-value="' + escapeHtml(valueText) + '" tabindex="0" role="button"' : '') + '>' +
-      (clickable ? '<div class="card-focus-bar"><span class="cfb-dot" aria-hidden="true"></span><span class="cfb-label">Shown on video</span><button type="button" class="card-back-btn">&#9668; Back to report</button></div>' : '') +
+      (clickable ? '<div class="card-focus-bar"><span class="cfb-dot" aria-hidden="true"></span><span class="cfb-label">Shown on video</span><button type="button" class="card-back-btn">&#9668; Hide from video</button></div>' : '') +
       '<div class="metric-head"><h3>' + title + '</h3>' +
       '<span class="badge ' + (isGood ? 'badge-good' : 'badge-flag') + '">' + (isGood ? 'Typical range' : 'Worth a look') + '</span></div>' +
       gauge(value, displayRange, goodRange) +
@@ -4611,13 +4630,18 @@ canvas.busy{ opacity:.72; }
     }, 80);
   });
   document.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape' && state.focusMetric) clearFocus(true);
+    if(e.key === 'Escape' && state.focusMetrics.size) clearFocus(true);
   });
 
-  // Clickable metric cards: jump to annotated frame
+  // Clickable metric cards: toggle their annotation on the video frame
   if(reportGrid){
     reportGrid.addEventListener('click', (e) => {
-      if(e.target.closest('.card-back-btn')){ clearFocus(true); return; }
+      const backBtn = e.target.closest('.card-back-btn');
+      if(backBtn){
+        const card = backBtn.closest('.metric-card[data-metric]');
+        if(card) unfocusMetric(card.dataset.metric, true);
+        return;
+      }
       const card = e.target.closest('.metric-card.clickable');
       if(card) activateMetricEl(card);
     });
