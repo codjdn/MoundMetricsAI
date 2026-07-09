@@ -1435,6 +1435,174 @@ canvas.busy{ opacity:.72; }
   .page-slide-right, .page-slide-left{ animation:none !important; }
 }
 
+/* =====================================================================
+   AMBIENCE — two soft color fields drift slowly behind the glass, so
+   the frosted panels always have something to frost. Pure decoration:
+   fixed, unclickable, and painted behind all content.
+   ===================================================================== */
+body::before, body::after{
+  content:""; position:fixed; z-index:-1; pointer-events:none;
+  width:64vmax; height:64vmax; border-radius:50%;
+  will-change:transform;
+}
+body::before{
+  left:-20vmax; top:-24vmax;
+  background:radial-gradient(circle at center, rgba(29,58,99,.17), rgba(29,58,99,0) 62%);
+  animation:blobDriftA 28s ease-in-out infinite alternate;
+}
+body::after{
+  right:-22vmax; bottom:-26vmax;
+  background:
+    radial-gradient(circle at 34% 30%, rgba(200,16,46,.10), rgba(200,16,46,0) 58%),
+    radial-gradient(circle at 68% 72%, rgba(74,222,128,.13), rgba(74,222,128,0) 60%);
+  animation:blobDriftB 34s ease-in-out infinite alternate;
+}
+@keyframes blobDriftA{ from{ transform:translate3d(0,0,0) scale(1); } to{ transform:translate3d(9vmax,6vmax,0) scale(1.14); } }
+@keyframes blobDriftB{ from{ transform:translate3d(0,0,0) scale(1.06); } to{ transform:translate3d(-8vmax,-7vmax,0) scale(.9); } }
+@media (prefers-reduced-motion: reduce){ body::before, body::after{ animation:none; } }
+@media print{ body::before, body::after{ display:none !important; } }
+
+::selection{ background:var(--navy); color:#fff; }
+
+/* ---------- hero: gradient ink headline with the seam-red "AI" ---------- */
+@keyframes riseIn{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+.hero .eyebrow{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) backwards; }
+.hero .sub{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .14s backwards; }
+.hero h1{
+  background:linear-gradient(115deg, #14213A 0%, #1D3A63 42%, #3E6FA6 68%, #1D3A63 92%);
+  background-size:200% 100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:riseIn .55s cubic-bezier(.2,.7,.3,1) .06s backwards,
+            heroInk 9s ease-in-out 1.2s infinite alternate;
+}
+@keyframes heroInk{ from{ background-position:0% 50%; } to{ background-position:100% 50%; } }
+.brand-ai{
+  background:linear-gradient(115deg, var(--red) 20%, #E2314F 80%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hdr-brand .brand-ai{ background:none; -webkit-background-clip:initial; background-clip:initial; color:var(--red); }
+@keyframes seamGrow{ from{ width:0; } to{ width:96px; } }
+.hero::after{ animation:seamGrow .7s cubic-bezier(.2,.7,.3,1) .25s backwards; }
+@media (prefers-reduced-motion: reduce){
+  .hero .eyebrow, .hero .sub, .hero h1, .hero::after{ animation:none; }
+}
+@media print{ .hero h1, .brand-ai{ -webkit-background-clip:initial; background-clip:initial; background:none; color:#14213A; } }
+
+/* ---------- setup panel: a red stitch runs across the top edge ---------- */
+#setupPanel{ position:relative; overflow:hidden; animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .1s backwards; }
+#setupPanel::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--seam); opacity:.85;
+}
+@media (prefers-reduced-motion: reduce){ #setupPanel{ animation:none; } }
+
+/* ---------- upload zone: bobbing baseball + a friendlier hover ---------- */
+.upload-zone{ transition:border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease; }
+.upload-zone:hover{ transform:translateY(-2px); box-shadow:0 12px 32px rgba(20,33,58,.13); }
+.upload-ball{
+  width:54px; height:54px; margin-bottom:14px;
+  filter:drop-shadow(0 7px 12px rgba(20,33,58,.20));
+  animation:ballBob 3.8s ease-in-out infinite;
+}
+.upload-ball .core{ fill:#fff; stroke:rgba(20,33,58,.28); stroke-width:2; }
+.upload-ball .stitch{ fill:none; stroke:var(--red); stroke-width:2.6; stroke-linecap:round; stroke-dasharray:4 5; }
+.upload-zone.has-file .upload-ball .stitch{ stroke:var(--good); }
+.upload-zone.has-file .upload-ball{ animation:none; }
+@keyframes ballBob{ 0%,100%{ transform:translateY(0) rotate(-7deg); } 50%{ transform:translateY(-7px) rotate(7deg); } }
+@media (prefers-reduced-motion: reduce){ .upload-ball{ animation:none; } }
+
+/* ---------- card hover lifts — same glass, a touch more alive ---------- */
+.trend-card, .drill-area, .saved-item{ transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.trend-card:hover, .drill-area:hover{ transform:translateY(-2px); box-shadow:0 12px 34px rgba(20,33,58,.16); }
+.saved-item:hover{ transform:translateY(-1px); box-shadow:0 8px 22px rgba(20,33,58,.12); border-color:#B9C4D4; }
+
+/* ---------- report: cards deal themselves in, one after another ---------- */
+@keyframes cardIn{ from{ opacity:0; transform:translateY(14px) scale(.985); } to{ opacity:1; transform:none; } }
+.report-grid .metric-card{ animation:cardIn .5s cubic-bezier(.2,.7,.3,1) backwards; }
+.report-grid .metric-card:nth-child(1){ animation-delay:.05s; }
+.report-grid .metric-card:nth-child(2){ animation-delay:.11s; }
+.report-grid .metric-card:nth-child(3){ animation-delay:.17s; }
+.report-grid .metric-card:nth-child(4){ animation-delay:.23s; }
+.report-grid .metric-card:nth-child(5){ animation-delay:.29s; }
+.report-grid .metric-card:nth-child(6){ animation-delay:.35s; }
+.report-grid .metric-card:nth-child(7){ animation-delay:.41s; }
+.report-grid .metric-card:nth-child(n+8){ animation-delay:.47s; }
+.report-takeaway, .report-priorities, .report-summary, .report-hint{ animation:cardIn .45s cubic-bezier(.2,.7,.3,1) backwards; }
+.report-priorities{ animation-delay:.06s; }
+.report-hint{ animation-delay:.1s; }
+@media (prefers-reduced-motion: reduce){
+  .report-grid .metric-card, .report-takeaway, .report-priorities, .report-summary, .report-hint{ animation:none; }
+}
+@media print{
+  .report-grid .metric-card, .report-takeaway, .report-priorities, .report-summary{ animation:none !important; }
+}
+
+/* ---------- processing: two-tone spinner + gradient progress fill ---------- */
+.proc-spinner{ border-top-color:var(--navy); border-right-color:var(--red); }
+.proc-fill{
+  background:linear-gradient(90deg, var(--navy), #3E6FA6);
+  box-shadow:0 0 10px rgba(29,58,99,.35);
+}
+
+/* =====================================================================
+   INK RIPPLE — every press splashes outward from the fingertip. The
+   ripple lives in its own clipped overlay so it never touches the
+   button's layout, overflow, or tooltips. (Injected by script.)
+   ===================================================================== */
+.ink-ripple-host{ position:relative; }
+.ink-ripple-wrap{
+  position:absolute; inset:0; border-radius:inherit; overflow:hidden;
+  pointer-events:none; z-index:1;
+}
+.ink-ripple{
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(255,255,255,.30) 40%, rgba(255,255,255,0) 70%);
+  transform:scale(0);
+  animation:inkRipple .62s cubic-bezier(.2,.6,.35,1) forwards;
+}
+.ink-ripple.ink-dark{
+  background:radial-gradient(circle, rgba(29,58,99,.30) 0%, rgba(29,58,99,.16) 40%, rgba(29,58,99,0) 70%);
+}
+@keyframes inkRipple{
+  0%{ transform:scale(0); opacity:1; }
+  60%{ opacity:.7; }
+  100%{ transform:scale(1); opacity:0; }
+}
+
+/* =====================================================================
+   BECKON — a sonar ring pulses out of whichever control is the next
+   step, so the eye always knows where the workflow wants to go.
+   Rings ride on a child overlay so the button's own shadows survive.
+   (Injected + moved between buttons by script.)
+   ===================================================================== */
+.beckon-ping{
+  position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none; z-index:0;
+}
+.beckon-ping i{
+  position:absolute; inset:0; border-radius:inherit;
+  box-shadow:0 0 0 0 rgba(74,222,128,.75);
+  animation:beckonRing 2.2s cubic-bezier(.2,.55,.35,1) infinite;
+}
+.beckon-ping i:nth-child(2){ animation-delay:1.1s; }
+@keyframes beckonRing{
+  0%{ box-shadow:0 0 0 0 rgba(74,222,128,.65); }
+  100%{ box-shadow:0 0 0 15px rgba(74,222,128,0); }
+}
+/* on the big dashed upload zone the ring reads better in navy */
+.upload-zone .beckon-ping i{
+  box-shadow:0 0 0 0 rgba(29,58,99,.5);
+  animation-name:beckonRingNavy;
+}
+@keyframes beckonRingNavy{
+  0%{ box-shadow:0 0 0 0 rgba(29,58,99,.42); }
+  100%{ box-shadow:0 0 0 17px rgba(29,58,99,0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .beckon-ping, .ink-ripple-wrap{ display:none; }
+}
+@media print{ .beckon-ping, .ink-ripple-wrap{ display:none !important; } }
+
 </style>
 </head>
 <body>
@@ -1442,7 +1610,7 @@ canvas.busy{ opacity:.72; }
 <!-- ============ GLOBAL HEADER (brand + centered tabs) ============ -->
 <!-- Lives OUTSIDE .app so it spans the full viewport width always -->
 <header class="app-header">
-  <div class="hdr-brand"><small>Pitching mechanics</small>Mound Metrics AI</div>
+  <div class="hdr-brand"><small>Pitching mechanics</small>Mound Metrics <span class="brand-ai">AI</span></div>
 
   <div class="mode-toggle" id="modeToggle" role="tablist" aria-label="Sections">
     <span class="mode-toggle-indicator" id="modeToggleIndicator" aria-hidden="true"></span>
@@ -1466,7 +1634,7 @@ canvas.busy{ opacity:.72; }
 <div class="app">
   <header class="hero">
     <div class="eyebrow">Frame-by-frame delivery analysis</div>
-    <h1>Mound Metrics AI</h1>
+    <h1>Mound Metrics <span class="brand-ai">AI</span></h1>
     <p class="sub">Upload a side-view pitching video and the built-in pose AI tracks the pitcher's joints in real time as you play it back. Tap "Auto-detect" and the AI finds each key moment of the delivery for you — reference stance, peak leg lift, foot plant, and release — then the app compares the resulting angles and ratios to general ranges from pitching biomechanics research.</p>
   </header>
 
@@ -1483,6 +1651,11 @@ canvas.busy{ opacity:.72; }
     <div class="setup-grid">
       <div class="upload-zone" id="uploadZone">
         <input type="file" id="videoInput" accept="video/*">
+        <svg class="upload-ball" viewBox="0 0 64 64" aria-hidden="true">
+          <circle class="core" cx="32" cy="32" r="29"/>
+          <path class="stitch" d="M13 9 C 27 23, 27 41, 13 55"/>
+          <path class="stitch" d="M51 9 C 37 23, 37 41, 51 55"/>
+        </svg>
         <div class="upload-label">
           <strong>Drop a pitching video here</strong>
           <span>or tap to choose a file (.mp4, .mov)</span>
@@ -5771,6 +5944,117 @@ canvas.busy{ opacity:.72; }
   applyHandedness();
   updateChecklist();
   refreshAthletes().then(refreshSavedList);
+})();
+</script>
+
+<!-- =====================================================================
+     DECORATIVE LAYER — ink ripples on press + a "beckon" ring that pulses
+     on whichever button is the next step. Purely visual: pointer-events
+     are disabled on everything it injects, and it never calls into the
+     app's logic — it only reads DOM state to decide where to sit.
+     ===================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* ---------- ink ripple: splash outward from the press point ---------- */
+  var RIPPLE_TARGETS = 'button, .metric-card.clickable, .rp-item, .upload-zone, .help-disc summary';
+
+  document.addEventListener('pointerdown', function(e){
+    if(reduceMotion && reduceMotion.matches) return;
+    if(!e.target || !e.target.closest) return;
+    var host = e.target.closest(RIPPLE_TARGETS);
+    if(!host || host.disabled) return;
+
+    var rect = host.getBoundingClientRect();
+    if(rect.width === 0 || rect.height === 0) return;
+    var x = e.clientX - rect.left, y = e.clientY - rect.top;
+    // radius reaches the farthest corner so the splash always fills the shape
+    var r = Math.hypot(Math.max(x, rect.width - x), Math.max(y, rect.height - y));
+
+    var wrap = document.createElement('span');
+    wrap.className = 'ink-ripple-wrap';
+    wrap.setAttribute('aria-hidden', 'true');
+    var ink = document.createElement('span');
+    ink.className = 'ink-ripple';
+
+    // pick ink to contrast the button: light text → white splash on a dark
+    // button; dark text → navy splash on a light glass button
+    var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(getComputedStyle(host).color || '');
+    if(m){
+      var lum = 0.299*m[1] + 0.587*m[2] + 0.114*m[3];
+      if(lum < 160) ink.className += ' ink-dark';
+    }
+
+    ink.style.width = ink.style.height = (r*2) + 'px';
+    ink.style.left = (x - r) + 'px';
+    ink.style.top  = (y - r) + 'px';
+    wrap.appendChild(ink);
+
+    if(getComputedStyle(host).position === 'static') host.classList.add('ink-ripple-host');
+    host.appendChild(wrap);
+
+    ink.addEventListener('animationend', function(){ wrap.remove(); });
+    setTimeout(function(){ if(wrap.isConnected) wrap.remove(); }, 1200); // safety net
+  }, { passive:true });
+
+  /* ---------- beckon: sonar ring on the next-step button ---------- */
+  function $(id){ return document.getElementById(id); }
+  var setupPanel = $('setupPanel'), workspacePanel = $('workspacePanel'),
+      progressPanel = $('progressPanel'), drillsPanel = $('drillsPanel'),
+      introScrim = $('introScrim'), confirmScrim = $('confirmScrim'),
+      reportPanel = $('reportPanel'), beginBtn = $('beginBtn'),
+      autoDetectBtn = $('autoDetectBtn'), saveBtn = $('saveBtn'),
+      saveLabel = $('saveLabel'), saveStatus = $('saveStatus'),
+      introStartBtn = $('introStartBtn'), uploadZone = $('uploadZone');
+
+  var ping = document.createElement('span');
+  ping.className = 'beckon-ping';
+  ping.setAttribute('aria-hidden', 'true');
+  ping.appendChild(document.createElement('i'));
+  ping.appendChild(document.createElement('i'));
+
+  // stop nudging "Save" once this clip has been saved; a new clip re-arms it
+  var savedThisClip = false;
+  if(saveBtn) saveBtn.addEventListener('click', function(){ savedThisClip = true; });
+  if(beginBtn) beginBtn.addEventListener('click', function(){ savedThisClip = false; });
+  var restartBtn = $('restartBtn'), backBtn = $('backToUploadBtn');
+  if(restartBtn) restartBtn.addEventListener('click', function(){ savedThisClip = false; });
+  if(backBtn) backBtn.addEventListener('click', function(){ savedThisClip = false; });
+
+  function hidden(el){ return !el || el.classList.contains('hidden'); }
+
+  function nextStepTarget(){
+    if(!hidden(confirmScrim)) return null;                       // never rush a confirm
+    if(document.querySelector('.modal-overlay:not(.hidden)')) return null;
+    if(!hidden(progressPanel) || !hidden(drillsPanel)) return null; // browse pages: no next step
+    if(!hidden(introScrim)) return introStartBtn;
+    if(!hidden(workspacePanel)){
+      if(hidden(reportPanel)){
+        return (autoDetectBtn && !autoDetectBtn.disabled) ? autoDetectBtn : null;
+      }
+      var label = saveLabel ? saveLabel.textContent.trim().toLowerCase() : '';
+      var loaded = saveStatus && /loaded/i.test(saveStatus.textContent || '');
+      if(!savedThisClip && !loaded && saveBtn && !saveBtn.disabled && label === 'save') return saveBtn;
+      return null;
+    }
+    if(!hidden(setupPanel)){
+      if(beginBtn && !beginBtn.disabled) return beginBtn;
+      return uploadZone;
+    }
+    return null;
+  }
+
+  var current = null;
+  setInterval(function(){
+    var t = nextStepTarget();
+    if(t === current) return;
+    current = t;
+    if(ping.parentNode) ping.parentNode.removeChild(ping);
+    if(t) t.appendChild(ping);
+  }, 350);
 })();
 </script>
 </body>
