@@ -1040,12 +1040,13 @@ canvas.busy{ opacity:.72; }
   box-shadow:0 10px 28px rgba(20,33,58,.18), 0 0 0 2px rgba(11,61,145,.12);
   z-index:1;
 }
-/* flagged cards already carry their own thick left/right border; the focus
-   ring above doesn't sit flush against it (mismatched widths at the rounded
-   corners), so it reads as a second, clipped-looking border. Drop the ring
-   here and keep just the elevation shadow. */
+/* flagged cards carry their own thick left/right border, but once a card is
+   focused its "worth a look" status is already shown via the badge and gauge
+   color — so drop the thick sides here and let it take the same thin,
+   uniform border shape as a non-flagged focused card. */
 .metric-card.flagged.focused{
-  box-shadow:0 10px 28px rgba(20,33,58,.18);
+  border-left-width:1px;
+  border-right-width:1px;
 }
 
 .metric-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
