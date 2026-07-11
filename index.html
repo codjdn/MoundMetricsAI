@@ -88,7 +88,15 @@
   --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
 }
 
-html,body{ height:100%; overflow:hidden; touch-action:manipulation; }
+/* Every screen lets the document itself scroll — that's what lets Safari's
+   toolbar shrink on scroll (it never does that for an inner overflow
+   container). Pinned chrome (global header, workspace video, Progress/Drills
+   top bars) uses position:sticky instead of locking the page. body must be
+   min-height (not height) — a fixed height would clamp the sticky header's
+   containing block to one viewport, so it'd scroll away past that point. */
+html{ height:100%; }
+html,body{ touch-action:manipulation; }
+body{ min-height:100%; }
 
 body{
   font-family:'Barlow',system-ui,sans-serif;
@@ -117,12 +125,11 @@ body{
 
 .app{
   max-width:1200px; margin:0 auto; padding:28px 20px 64px;
-  height:calc(100dvh - var(--header-h));
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
 }
-body.mode-workspace .app{ max-width:none; padding:0; overflow:hidden; height:calc(100dvh - var(--header-h)); }
+body.mode-workspace .app{ max-width:none; padding:0; }
+/* On Progress/Drills everything inside .app is hidden and the panel sits
+   after it in flow — collapse the empty container so it leaves no gap. */
+body.page-analysis .app, body.page-drills .app{ padding:0; }
 
 .hidden{ display:none !important; }
 button{ font-family:inherit; }
@@ -338,8 +345,6 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
    ===================================================================== */
 #workspacePanel{
   background:none; border:none; border-radius:0; padding:0; margin:0;
-  height:calc(100vh - var(--header-h)); height:calc(100dvh - var(--header-h));
-  display:flex; flex-direction:column; overflow:hidden;
   position:relative;
 }
 #workspacePanel.hidden{ display:none !important; }
@@ -428,7 +433,15 @@ input[type=number]:focus{ outline:2px solid var(--navy); outline-offset:1px; }
 }
 @media (max-width:480px){ .ws-save-status{ font-size:0; min-width:0; } }
 
-.ws-body{ flex:1; min-height:0; display:flex; }
+/* Sticks to the top of the page (below the global header) so the video,
+   its playback bar, and the auto-detect/save actions never move — the
+   report below scrolls with the actual document instead of an inner
+   overflow box, which is what lets Safari's toolbar shrink on scroll. */
+.ws-body{
+  position:sticky; top:var(--header-h); z-index:30;
+  height:min(64vh, 620px);
+  display:flex; background:var(--stage);
+}
 .video-col{ flex:1; min-width:0; display:flex; flex-direction:column; background:var(--stage); position:relative; }
 
 .canvas-wrap{ position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
@@ -483,17 +496,17 @@ canvas.busy{ opacity:.72; }
 .ov-focuschip #focusChipBack:hover{ filter:brightness(1.06); }
 .ov-focuschip #focusChipBack:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
 
-/* report slot — sits below the video and scrolls independently. Shows a
-   prompt to run Auto-detect until a report exists, then the report itself. */
+/* report slot — sits below the sticky video in normal document flow, so it
+   scrolls with the page. Shows a prompt to run Auto-detect until a report
+   exists, then the report itself. */
 .report-slot{
-  flex:none; background:var(--card); border-top:1px solid var(--line);
-  max-height:60vh; display:flex; flex-direction:column; overflow:hidden;
+  background:var(--card); border-top:1px solid var(--line);
 }
 .report-prompt{
   padding:14px 20px; text-align:center; font-size:13.5px; color:var(--muted);
 }
 .report-prompt b{ color:var(--ink); }
-.report-inline{ display:flex; flex-direction:column; min-height:0; overflow:hidden; position:relative; }
+.report-inline{ display:block; }
 
 /* phase timeline — 4 small marks laid directly over the scrub track instead
    of a separate progress row, so the video keeps the vertical space. Each
@@ -967,22 +980,21 @@ canvas.busy{ opacity:.72; }
 .progress-all-good{ background:var(--good-soft); border:1px solid #BFDECB; border-left:3px solid var(--good); border-right:3px solid var(--good); border-radius:var(--radius-lg); padding:16px 18px; color:var(--muted); font-size:13.5px; }
 .progress-all-good strong{ color:var(--good); }
 
+/* Normal document flow (the page itself scrolls — see the html/body note up
+   top); only the topbar is pinned, sticking just below the global header. */
 #progressPanel, #drillsPanel{
-  position:fixed !important;
-  top:var(--header-h); left:0; right:0; bottom:0;
   width:100% !important;
   padding:0 !important; margin:0 !important;
   border:none !important; border-radius:0 !important;
   background:var(--paper) !important;
-  display:flex !important; flex-direction:column;
-  z-index:30;
-  overflow:hidden;
+  min-height:calc(100dvh - var(--header-h));
   box-shadow:none;
 }
 #progressPanel.hidden, #drillsPanel.hidden{ display:none !important; }
 
 .panel-topbar{
-  flex:none; width:100%;
+  position:sticky; top:var(--header-h); z-index:30;
+  width:100%;
   display:flex; align-items:center; gap:16px;
   padding:16px 24px;
   background:var(--card); border-bottom:1px solid var(--line);
@@ -1005,7 +1017,6 @@ canvas.busy{ opacity:.72; }
 }
 
 .panel-content{
-  flex:1; min-height:0; overflow-y:auto;
   padding:24px;
   max-width:1200px; margin:0 auto; width:100%;
 }
@@ -1036,21 +1047,9 @@ canvas.busy{ opacity:.72; }
 .report-head{
   display:flex; align-items:center; gap:12px; padding:8px 20px;
   border-bottom:1px solid var(--line); background:var(--card);
-  position:absolute; top:0; left:0; right:0; z-index:2;
-  transition:box-shadow .2s ease;
+  position:relative;
 }
-.report-head::after{ content:''; position:absolute; left:20px; bottom:-2px; width:64px; height:3px; background:var(--seam); transition:opacity .15s ease; }
-/* The header floats as an absolutely-positioned strip over report-scroll
-   instead of taking up flex space, and report-scroll reserves matching
-   top padding so content starts just below it at rest. The header's
-   translateY is set to exactly -scrollTop (clamped to its own height) on
-   every scroll event — a pure function of scroll position, no transition,
-   no coupling to report-scroll's box size — so it slides away and back at
-   precisely the rate the user scrolls, and the report content underneath
-   always scrolls at the user's actual scroll speed. See
-   initReportHeaderAutoHide in the script. */
-.report-head.rh-hidden::after{ opacity:0; }
-.report-head.rh-elevated{ box-shadow:0 3px 10px rgba(20,33,58,.14); }
+.report-head::after{ content:''; position:absolute; left:20px; bottom:-2px; width:64px; height:3px; background:var(--seam); }
 .report-head h2{
   font-family:'Barlow Condensed',sans-serif; font-weight:700;
   font-size:17px; text-transform:uppercase; letter-spacing:.02em;
@@ -1062,7 +1061,7 @@ canvas.busy{ opacity:.72; }
 .report-head-actions .ghost-btn{
   flex:none; padding:5px 12px; font-size:10.5px; letter-spacing:.05em; line-height:1.4;
 }
-.report-scroll{ flex:1; overflow-y:auto; padding:20px; padding-top:calc(var(--rh-h, 46px) + 12px); }
+.report-scroll{ padding:20px; }
 
 .report-summary{ font-size:14.5px; margin-bottom:20px; }
 .report-summary .count{ font-family:'IBM Plex Mono',monospace; color:var(--navy); font-weight:600; }
@@ -1082,8 +1081,7 @@ canvas.busy{ opacity:.72; }
 .metric-card.flagged{ border-left:3px solid var(--flag); border-right:3px solid var(--flag); }
 
 /* focused = the card currently shown on the video; pops forward a touch and
-   sits above its neighbors, but never leaves the report-scroll box, so it
-   can't creep up over the video. */
+   sits above its neighbors. */
 .metric-card.focused{
   transform:scale(1.02);
   border-color:var(--navy);
@@ -1300,16 +1298,14 @@ canvas.busy{ opacity:.72; }
 }
 @media (max-width:720px){
   /* Video gets a constant share of the screen instead of ballooning to fill
-     whatever the report doesn't need — the report flexes to fill the rest
-     and scrolls internally (see .report-scroll), so it stays readable
-     whether it's a one-line prompt or a full delivery report. */
-  .ws-body{ flex-direction:column; flex:0 0 42.5vh; min-height:0; }
+     whatever the report doesn't need — it stays pinned via .ws-body's
+     position:sticky while the report scrolls with the page underneath it. */
+  .ws-body{ flex-direction:column; height:42.5vh; }
   .video-col{ flex:1; min-height:0; }
   .side-col{
     width:100%; border-left:none; border-top:1px solid var(--line);
     flex:1; min-height:0; overflow:hidden;
   }
-  .report-slot{ flex:1; min-height:0; max-height:none; }
   .landmark-checklist{ grid-template-columns:1fr 1fr; }
   .video-actions-bar > *{ padding:8px 8px; font-size:11.5px; letter-spacing:.04em; white-space:nowrap; }
 }
@@ -4019,21 +4015,20 @@ body::after{
     focusChip.classList.remove('hidden');
   }
 
-  // Scrolls the *internal* report-scroll container (never the page/window) so
-  // the popped-out card is centered in the space below the floating report
-  // header, and clamps to the container's own scroll range — it can't scroll
-  // far enough to disturb the video, which lives in a separate box above.
+  // Scrolls the page (the video stays put — it's pinned via .ws-body's
+  // position:sticky) so the popped-out card is centered in the space below
+  // the sticky video, clamped to the document's own scroll range.
   function scrollToFocusedCard(card){
-    const scroller = reportPanel && reportPanel.querySelector('.report-scroll');
-    if(!scroller || !card) return;
-    const headH = parseFloat(getComputedStyle(reportPanel).getPropertyValue('--rh-h')) || 46;
-    const scRect = scroller.getBoundingClientRect();
+    if(!card) return;
+    const wsBody = document.querySelector('.ws-body');
+    const stickyH = wsBody ? wsBody.getBoundingClientRect().bottom : 0;
     const cardRect = card.getBoundingClientRect();
-    const cardTopInScroller = (cardRect.top - scRect.top) + scroller.scrollTop;
-    const viewH = Math.max(0, scroller.clientHeight - headH);
-    let target = cardTopInScroller - headH - Math.max(0, (viewH - cardRect.height) / 2);
-    target = Math.max(0, Math.min(target, scroller.scrollHeight - scroller.clientHeight));
-    scroller.scrollTo({ top: target, behavior: 'smooth' });
+    const cardTopDoc = cardRect.top + window.scrollY;
+    const viewH = Math.max(0, window.innerHeight - stickyH);
+    let target = cardTopDoc - stickyH - Math.max(0, (viewH - cardRect.height) / 2);
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    target = Math.max(0, Math.min(target, maxScroll));
+    window.scrollTo({ top: target, behavior: 'smooth' });
   }
 
   function focusMetricCard(key){
@@ -4836,46 +4831,10 @@ body::after{
     if(reportThumbs) reportThumbs.innerHTML = '';
     if(reportPrompt) reportPrompt.classList.add('hidden');
     reportPanel.classList.remove('hidden');
-    // Always start the report at the top, even if it was scrolled previously.
-    const rs = reportPanel.querySelector('.report-scroll');
-    if(rs) rs.scrollTop = 0;
-    resetReportHeaderOffset();
+    // Always start the report at the top, even if the page was scrolled
+    // previously — the sticky video sits right above it either way.
+    window.scrollTo(0, 0);
   }
-
-  // ---- Delivery-report header: floats over the report as an absolutely
-  // positioned strip (see .report-head in the stylesheet) so it never
-  // changes report-scroll's own box size. Its slide-away position is set to
-  // exactly -scrollTop (clamped to its own height) on every scroll event —
-  // a pure function of scroll position, not an accumulated delta — so the
-  // header always matches the real scroll position exactly and the report
-  // content beneath it always scrolls at precisely the user's scroll speed,
-  // never faster or slower while the header is mid-transition.
-  let resetReportHeaderOffset = () => {};
-  (function initReportHeaderAutoHide(){
-    const head = reportPanel.querySelector('.report-head');
-    const scroller = reportPanel.querySelector('.report-scroll');
-    if(!head || !scroller) return;
-
-    let headH = head.offsetHeight;
-    const syncHeight = () => {
-      headH = head.offsetHeight;
-      reportPanel.style.setProperty('--rh-h', headH + 'px');
-    };
-    syncHeight();
-    new ResizeObserver(syncHeight).observe(head);
-
-    const apply = () => {
-      const top = scroller.scrollTop;
-      const off = Math.min(headH, Math.max(0, top));
-      head.style.transform = off ? ('translateY(-' + off + 'px)') : '';
-      head.classList.toggle('rh-hidden', off >= headH - 1);
-      head.classList.toggle('rh-elevated', top > 4);
-    };
-
-    scroller.addEventListener('scroll', apply, { passive:true });
-
-    resetReportHeaderOffset = apply;
-  })();
 
   // ---- PDF export (browser print → "Save as PDF") ----
   // A print stylesheet renders the report on white paper; here we just stamp a
