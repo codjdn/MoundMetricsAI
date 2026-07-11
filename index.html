@@ -88,7 +88,12 @@
   --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
 }
 
-html,body{ height:100%; overflow:hidden; touch-action:manipulation; }
+html,body{ height:100%; touch-action:manipulation; }
+/* Workspace mode is a fixed two-pane app shell (rail + report scroll
+   internally), so it keeps the outer page locked. Every other screen
+   lets the document itself scroll, which is what lets Safari's toolbar
+   shrink on scroll (it never does that for an inner overflow container). */
+body.mode-workspace{ overflow:hidden; }
 
 body{
   font-family:'Barlow',system-ui,sans-serif;
@@ -117,10 +122,6 @@ body{
 
 .app{
   max-width:1200px; margin:0 auto; padding:28px 20px 64px;
-  height:calc(100dvh - var(--header-h));
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
 }
 body.mode-workspace .app{ max-width:none; padding:0; overflow:hidden; height:calc(100dvh - var(--header-h)); }
 
