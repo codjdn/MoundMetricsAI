@@ -15,7 +15,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mound Metrics AI — Delivery Analysis</title>
 <meta name="description" content="Upload a side-view pitching video and get frame-by-frame delivery mechanics feedback. Runs entirely in your browser — video is never uploaded.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%231D3A63%22/><text x=%2250%22 y=%2266%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-family=%22sans-serif%22>M</text></svg>">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<!-- Social sharing card -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mound Metrics AI">
+<meta property="og:title" content="Mound Metrics AI — Delivery Analysis">
+<meta property="og:description" content="Upload a side-view pitching video and get frame-by-frame delivery mechanics feedback. Runs entirely in your browser — video is never uploaded.">
+<meta property="og:url" content="https://moundmetrics.app/">
+<meta property="og:image" content="https://moundmetrics.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 
 <!--
   HOW TO RUN LOCALLY
@@ -148,11 +158,8 @@ button{ font-family:inherit; }
 /* ---------- hero (upload screen only) ---------- */
 .hero{ padding:6px 0 22px; margin-bottom:26px; position:relative; }
 .hero::after{ content:''; position:absolute; left:0; bottom:0; width:96px; height:3px; background:var(--seam); }
-.hero h1{
-  font-family:'Barlow Condensed',sans-serif; font-weight:700;
-  font-size:clamp(34px,6vw,54px); line-height:1.02;
-  letter-spacing:.005em; text-transform:uppercase; margin-bottom:12px;
-}
+.hero h1{ margin-bottom:14px; }
+.hero h1 img{ display:block; width:min(500px,90vw); height:auto; }
 .hero .sub{ color:var(--muted); max-width:66ch; font-size:15px; }
 body.mode-workspace .hero,
 body.page-analysis .hero, body.page-drills .hero{ display:none; }
@@ -180,8 +187,17 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .app-header .hdr-brand{
   font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.03em;
   text-transform:uppercase; font-size:19px; line-height:1.05;
-  white-space:nowrap; justify-self:start; min-width:0;
-  overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; justify-self:start; min-width:0; max-width:100%;
+  display:flex; align-items:center; gap:9px;
+}
+.app-header .hdr-logo{
+  width:32px; height:32px; flex:0 0 auto; border-radius:8px;
+  box-shadow:0 1px 4px rgba(20,33,58,.18);
+}
+.app-header .hdr-brand-text{ min-width:0; overflow:hidden; text-overflow:ellipsis; }
+/* below ~1000px the centered tabs leave too little room for icon + wordmark — go icon-only */
+@media (max-width:1000px){
+  .app-header .hdr-brand-text{ display:none; }
 }
 .app-header .hdr-brand small{
   color:var(--red); font-size:10px; letter-spacing:.18em;
@@ -228,13 +244,14 @@ body.mode-workspace .hdr-ws-only{ display:inline-flex !important; }
 @media (max-width:720px){
   .app-header{ padding:0 12px; gap:8px; }
   .app-header .hdr-brand small{ display:none; }
-  .app-header .hdr-brand{ font-size:16px; }
+  .app-header .hdr-brand{ font-size:16px; gap:7px; }
+  .app-header .hdr-logo{ width:28px; height:28px; border-radius:7px; }
   .mode-toggle{ padding:3px; gap:2px; }
   .mode-toggle-btn{ padding:7px 11px; font-size:12.5px; letter-spacing:.04em; }
 }
 @media (max-width:520px){
   .app-header{ padding:0 10px; gap:6px; }
-  .app-header .hdr-brand{ font-size:12px; letter-spacing:.02em; }
+  .app-header .hdr-logo{ width:26px; height:26px; }
   .mode-toggle-btn{ padding:6px 8px; font-size:11.5px; letter-spacing:.02em; }
   .back-btn{ padding:7px 8px; }
   .back-btn .back-btn-label{ display:none; }
@@ -1364,6 +1381,7 @@ canvas.busy{ opacity:.72; }
   .report-print-head{
     display:block; border-bottom:3px solid #1D3A63; padding-bottom:10px; margin-bottom:16px;
   }
+  .report-print-head .pp-logo{ display:block; width:230px; height:auto; margin-bottom:8px; }
   .report-print-head .pp-brand{
     font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px;
     color:#14213A; letter-spacing:.01em; text-transform:uppercase;
@@ -1460,14 +1478,7 @@ body::after{
 @keyframes riseIn{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
 .hero .eyebrow{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) backwards; }
 .hero .sub{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .14s backwards; }
-.hero h1{
-  background:linear-gradient(115deg, #14213A 0%, #1D3A63 42%, #3E6FA6 68%, #1D3A63 92%);
-  background-size:200% 100%;
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  animation:riseIn .55s cubic-bezier(.2,.7,.3,1) .06s backwards,
-            heroInk 9s ease-in-out 1.2s infinite alternate;
-}
-@keyframes heroInk{ from{ background-position:0% 50%; } to{ background-position:100% 50%; } }
+.hero h1{ animation:riseIn .55s cubic-bezier(.2,.7,.3,1) .06s backwards; }
 .brand-ai{
   background:linear-gradient(115deg, var(--red) 20%, #E2314F 80%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
@@ -1619,7 +1630,10 @@ body::after{
 <!-- ============ GLOBAL HEADER (brand + centered tabs) ============ -->
 <!-- Lives OUTSIDE .app so it spans the full viewport width always -->
 <header class="app-header">
-  <div class="hdr-brand"><small>Pitching mechanics</small>Mound Metrics <span class="brand-ai">AI</span></div>
+  <div class="hdr-brand">
+    <img class="hdr-logo" src="assets/app-icon.png" alt="" width="32" height="32">
+    <span class="hdr-brand-text"><small>Pitching mechanics</small>Mound Metrics <span class="brand-ai">AI</span></span>
+  </div>
 
   <div class="mode-toggle" id="modeToggle" role="tablist" aria-label="Sections">
     <span class="mode-toggle-indicator" id="modeToggleIndicator" aria-hidden="true"></span>
@@ -1643,7 +1657,7 @@ body::after{
 <div class="app">
   <header class="hero">
     <div class="eyebrow">Frame-by-frame delivery analysis</div>
-    <h1>Mound Metrics <span class="brand-ai">AI</span></h1>
+    <h1><img src="assets/logo.png" alt="Mound Metrics AI" width="1464" height="300"></h1>
     <p class="sub">Upload a side-view pitching video and the built-in pose AI tracks the pitcher's joints in real time as you play it back. Tap "Auto-detect" and the AI finds each key moment of the delivery for you — reference stance, peak leg lift, foot plant, and release — then the app compares the resulting angles and ratios to general ranges from pitching biomechanics research.</p>
   </header>
 
@@ -4852,7 +4866,8 @@ body::after{
       'Date: ' + d.toLocaleDateString()
     ];
     reportPrintHead.innerHTML =
-      '<div class="pp-brand"><small>Pitching mechanics</small>Mound Metrics AI — Delivery Report</div>' +
+      '<img class="pp-logo" src="assets/logo.png" alt="Mound Metrics AI">' +
+      '<div class="pp-brand"><small>Pitching mechanics</small>Delivery Report</div>' +
       '<div class="pp-meta">' + meta.map(escapeHtml).join('  ·  ') + '</div>';
   }
 
