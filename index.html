@@ -1337,6 +1337,20 @@ canvas.busy{ opacity:.72; }
 /* =====================================================================
    RESPONSIVE
    ===================================================================== */
+/* Web / desktop layout: the video pins on the LEFT and the delivery report
+   scrolls on the RIGHT (a sticky-sidebar pattern — the page itself scrolls,
+   .ws-body stays put via its position:sticky while .report-slot grows tall
+   beside it). This is desktop-only (min-width:721px); every rule below the
+   720px breakpoint keeps the untouched stacked mobile layout. */
+@media (min-width:721px){
+  #workspacePanel{ display:flex; align-items:flex-start; }
+  .ws-body{ flex:1 1 auto; min-width:0; }
+  .report-slot{
+    flex:0 0 42%; min-width:360px; max-width:560px;
+    align-self:stretch;
+    border-top:none; border-left:1px solid var(--line);
+  }
+}
 @media (max-width:900px){
   .side-col{ width:300px; }
   .landmark-checklist{ grid-template-columns:1fr; }
