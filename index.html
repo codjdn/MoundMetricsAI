@@ -4283,10 +4283,32 @@ body::after{
       hipDrivePct = ((fpF('hip').y - relF('hip').y) / refH) * 100;
     }
 
+    // 15. Release height — throwing wrist above the ground at release, as a
+    //     % of standing height. The planted front ankle marks ground level in
+    //     the release frame, so this stays honest even if the camera shifted
+    //     slightly since the reference frame.
+    let releaseHeightPct = null, releaseHeightIn = null;
+    if(refH && relT('wr') && relF('ank')){
+      releaseHeightPct = ((relF('ank').y - relT('wr').y) / refH) * 100;
+      releaseHeightIn  = (releaseHeightPct / 100) * heightIn;
+    }
+
+    // 16. Extension — how far out in front of the landing foot the ball is
+    //     released, as a % of standing height. Signed toward home plate (the
+    //     front ankle sits ahead of the back ankle), so a release point still
+    //     behind the front foot reads negative.
+    let extensionPct = null, extensionIn = null;
+    if(refH && relT('wr') && relF('ank') && relT('ank')){
+      const dir = relF('ank').x >= relT('ank').x ? 1 : -1;
+      extensionPct = (((relT('wr').x - relF('ank').x) * dir) / refH) * 100;
+      extensionIn  = (extensionPct / 100) * heightIn;
+    }
+
     return {
       stridePct, strideIn, kneeFP, kneeChange, trunkRel, elbowFP, trunkFP,
       legLiftPct, balanceLeglift, elbowHeightFP,
-      gloveElbowFP, backKneeFP, shoulderDropPct, elbowRel, hipDrivePct
+      gloveElbowFP, backKneeFP, shoulderDropPct, elbowRel, hipDrivePct,
+      releaseHeightPct, releaseHeightIn, extensionPct, extensionIn
     };
   }
 
@@ -4311,7 +4333,9 @@ body::after{
     backKneeFP:     { phase:'footplant', kind:'angle',    joints:[['t','hip'],['t','knee'],['t','ank']] },
     shoulderDropPct:{ phase:'release',   kind:'height',   joints:[['t','sh'],['f','sh']] },
     elbowRel:       { phase:'release',   kind:'angle',    joints:[['t','sh'],['t','el'],['t','wr']] },
-    hipDrivePct:    { phase:'release',   kind:'point',    joints:[['f','hip']] }
+    hipDrivePct:    { phase:'release',   kind:'point',    joints:[['f','hip']] },
+    releaseHeightPct:{ phase:'release',  kind:'height',   joints:[['t','wr'],['f','ank']] },
+    extensionPct:   { phase:'release',   kind:'hdist',    joints:[['t','wr'],['f','ank']] }
   };
 
   function visResolve(pts, hand, jt){
@@ -4342,6 +4366,14 @@ body::after{
     g.moveTo(x, y);
     g.lineTo(x - 4, y + dir*7);
     g.lineTo(x + 4, y + dir*7);
+    g.closePath();
+    g.fillStyle = '#4ADE80'; g.fill();
+  }
+  function annArrowH(g, x, y, dir){
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + dir*7, y - 4);
+    g.lineTo(x + dir*7, y + 4);
     g.closePath();
     g.fillStyle = '#4ADE80'; g.fill();
   }
@@ -4410,6 +4442,20 @@ body::after{
       g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
       P.forEach(p => annJoint(g, p));
       pill((a.x+b.x)/2, (a.y+b.y)/2 - 22*scale, valueText);
+    } else if(vis.kind === 'hdist'){
+      // Horizontal separation between two joints — dashed drops from each
+      // joint to a shared baseline, then a solid measured span along it.
+      const a = P[0], b = P[1];
+      const y = Math.max(a.y, b.y) + 14*scale;
+      g.setLineDash([4*scale,4*scale]); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.5*scale;
+      g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(a.x, y); g.stroke();
+      g.beginPath(); g.moveTo(b.x, b.y); g.lineTo(b.x, y); g.stroke();
+      g.setLineDash([]); g.strokeStyle = AMBER; g.lineWidth = 3*scale;
+      g.beginPath(); g.moveTo(a.x, y); g.lineTo(b.x, y); g.stroke();
+      annArrowH(g, a.x, y, a.x < b.x ? -1 : 1);
+      annArrowH(g, b.x, y, b.x < a.x ? -1 : 1);
+      P.forEach(p => annJoint(g, p));
+      pill((a.x+b.x)/2 - 20*scale, y + 8*scale, valueText);
     } else if(vis.kind === 'point'){
       annJoint(g, P[0]);
       pill(P[0].x + 12*scale, P[0].y - 22*scale, valueText);
@@ -4436,7 +4482,9 @@ body::after{
     { key:'backKneeFP',     label:'Back leg angle when you land',        simpleName:'Back leg at landing', unit:'°', area:'lower_drive',                   good:{'6-10':[140,180],'11-14':[142,178],'15-18':[144,177],'18+':[145,176]}, display:[100,180] },
     { key:'shoulderDropPct',label:'Shoulder drop at release',            simpleName:'Shoulder drop at release', unit:'%', area:'trunk',                   good:{'6-10':[2,18],'11-14':[2,17],'15-18':[2,16],'18+':[3,16]},    display:[-8,25] },
     { key:'elbowRel',       label:'Throwing elbow straightness at release',simpleName:'Elbow extension at release', unit:'°', area:'arm_action',        good:{'6-10':[120,180],'11-14':[124,176],'15-18':[126,174],'18+':[128,172]}, display:[80,180] },
-    { key:'hipDrivePct',    label:'Forward hip movement',                simpleName:'Hip drive through delivery', unit:'%', area:'lower_drive', higherBetter:true,   good:{'6-10':[1,20],'11-14':[1,19],'15-18':[1,18],'18+':[2,18]},    display:[-10,30] }
+    { key:'hipDrivePct',    label:'Forward hip movement',                simpleName:'Hip drive through delivery', unit:'%', area:'lower_drive', higherBetter:true,   good:{'6-10':[1,20],'11-14':[1,19],'15-18':[1,18],'18+':[2,18]},    display:[-10,30] },
+    { key:'releaseHeightPct',label:'How high you release the ball',      simpleName:'Release height', unit:'%', area:'arm_action',                                  good:{'6-10':[70,105],'11-14':[72,104],'15-18':[73,103],'18+':[75,102]}, display:[40,120] },
+    { key:'extensionPct',   label:'How far out front you release',       simpleName:'Extension at release', unit:'%', area:'trunk',      higherBetter:true,   good:{'6-10':[0,30],'11-14':[2,30],'15-18':[3,30],'18+':[5,30]},    display:[-15,45] }
   ];
 
   const METRIC_SPECS = METRIC_BASE;
@@ -4820,6 +4868,32 @@ body::after{
         note = 'Falls within the range commonly seen for your age group — the front hip drives upward through the delivery at a rate consistent with efficient energy transfer from the lower body into the trunk and arm.';
       }
       cards.push(card('Forward hip movement', m.hipDrivePct, '%', 1, [-10,30], goodRange, good, note));
+    });
+
+    maybeCard(m.releaseHeightPct, () => {
+      const goodRange = getMetricGoodRange('releaseHeightPct', state.ageRange);
+      const good = m.releaseHeightPct >= goodRange[0] && m.releaseHeightPct <= goodRange[1]; if(good) goodCount++;
+      let note;
+      if(m.releaseHeightPct < goodRange[0]){
+        note = 'The ball leaves the hand lower than is typical for your age group — about ' + fmtIn(m.releaseHeightIn) + ' off the ground for your height. A lower release isn’t automatically wrong (sidearm and low three-quarter slots live here on purpose), but when it isn’t intentional it often traces back to the trunk tilting away from the glove side or the front leg collapsing at release, both worth checking with a coach.';
+      } else if(m.releaseHeightPct > goodRange[1]){
+        note = 'The ball leaves the hand from a very high point — about ' + fmtIn(m.releaseHeightIn) + ' off the ground for your height. A high, over-the-top release can add downhill angle, but at extreme values it sometimes comes from staying too upright or tilting the trunk hard toward the glove side instead of rotating, which can put extra demand on the shoulder.';
+      } else {
+        note = 'Falls within the range commonly seen at release for your age group — the ball leaves the hand about ' + fmtIn(m.releaseHeightIn) + ' off the ground, consistent with a standard high three-quarter delivery for your height.';
+      }
+      cards.push(card('How high you release the ball', m.releaseHeightPct, '%', 1, [40,120], goodRange, good, note));
+    });
+
+    maybeCard(m.extensionPct, () => {
+      const goodRange = getMetricGoodRange('extensionPct', state.ageRange);
+      const good = m.extensionPct >= goodRange[0]; if(good) goodCount++;
+      let note;
+      if(!good){
+        note = 'The ball is released at — or behind — the landing foot rather than out in front of it. Releasing the ball further out front effectively shortens the distance to the plate, making the same pitch play faster, and usually comes from getting the chest out over a braced front leg rather than reaching with the arm. Cues like "throw through the catcher" and over-the-front-side drills are common starting points.';
+      } else {
+        note = 'The ball is released about ' + Math.round(m.extensionIn) + '" out in front of the landing foot — within the range commonly seen for your age group. Good extension shortens the effective distance to the plate and is a sign the trunk is finishing out over the front leg rather than the arm doing the work alone.';
+      }
+      cards.push(card('How far out front you release', m.extensionPct, '%', 1, [-15,45], goodRange, good, note));
     });
 
     const missingCount = METRIC_SPECS.length - totalCount;
