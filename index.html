@@ -2615,8 +2615,12 @@ body::after{
     const ratio = srcH / srcW;
     canvas.width  = Math.min(Math.round(srcW), maxW);
     canvas.height = Math.round(canvas.width * ratio);
-    off.width  = canvas.width;
-    off.height = canvas.height;
+    // The detection canvas is deliberately smaller than the display canvas:
+    // BlazePose downsizes its input to ~256px internally, so anything past
+    // ~640px wide only adds per-frame draw + readback cost, not accuracy.
+    // Landmarks come back normalized, so the two canvases never need to match.
+    off.width  = Math.min(canvas.width, 640);
+    off.height = Math.max(1, Math.round(off.width * ratio));
   }
 
   // Draw the (possibly cropped) current video frame to a destination context,
@@ -2789,7 +2793,11 @@ body::after{
       smoothLandmarks: false,
       enableSegmentation: false,
       minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
+      // The app seeks all over the clip (scrubbing, auto-detect scans), so the
+      // tracker's previous-frame ROI is often stale. A higher tracking bar
+      // makes it re-run full detection instead of trusting a bad ROI, which
+      // is what used to mangle limbs right after a seek.
+      minTrackingConfidence: 0.6
     });
     pose.onResults((res) => {
       const out = res.poseLandmarks
@@ -3355,24 +3363,37 @@ body::after{
     showPlayPauseOverlay();
   });
 
+  // Drive playback repaints from requestVideoFrameCallback when the browser
+  // has it: the canvas + skeleton only need redrawing when the video actually
+  // presents a new frame (~10/s at slow-mo rate), not on every animation frame
+  // (60+/s). That cuts playback canvas work by ~6x — the difference between a
+  // smooth and a choppy preview on phones. Older browsers fall back to rAF.
+  const HAS_VFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+  let playLoopUsesVfc = false;
+
   function startPlayLoop(){
     if(playRaf) return;
     const tick = () => {
       if(video.paused){ playRaf = null; return; }
-      // Repaint the current video frame smoothly every animation frame, and
-      // kick a live pose detection so the dots track the moving body. Detection
-      // is async and slower than the frame rate, so we just use the latest
-      // result we have.
+      // Repaint the current video frame, and kick a live pose detection so the
+      // dots track the moving body. Detection is async and slower than the
+      // frame rate, so we just use the latest result we have.
       drawFrame();
       updateTimeUI();
       requestLiveDetect();
-      playRaf = requestAnimationFrame(tick);
+      playRaf = playLoopUsesVfc ? video.requestVideoFrameCallback(tick)
+                                : requestAnimationFrame(tick);
     };
-    playRaf = requestAnimationFrame(tick);
+    playLoopUsesVfc = HAS_VFC;
+    playRaf = playLoopUsesVfc ? video.requestVideoFrameCallback(tick)
+                              : requestAnimationFrame(tick);
   }
 
   function stopPlayLoop(){
-    if(playRaf){ cancelAnimationFrame(playRaf); playRaf = null; }
+    if(!playRaf) return;
+    if(playLoopUsesVfc) video.cancelVideoFrameCallback(playRaf);
+    else cancelAnimationFrame(playRaf);
+    playRaf = null;
   }
 
   // Run detection on the current frame and store it as the live preview. Does
@@ -3386,7 +3407,22 @@ body::after{
       drawVideoCropped(offctx, off);
       const lm = await withTimeout(detect(off), 5000);
       if(lm){
-        liveLm = lm;
+        // While the video is PLAYING, blend each new detection with the last
+        // one so the preview skeleton glides instead of jittering (detection
+        // noise is a few px per joint per frame). Never blend while paused/
+        // scrubbing — a scrub can jump seconds, and a stale blend would drag
+        // the dots across the screen.
+        if(liveLm && !video.paused){
+          const a = 0.65;   // weight on the fresh detection
+          liveLm = lm.map((p, i) => {
+            const q = liveLm[i];
+            if(!q) return p;
+            return { x: a*p.x + (1-a)*q.x, y: a*p.y + (1-a)*q.y,
+                     z: a*p.z + (1-a)*q.z, v: p.v };
+          });
+        } else {
+          liveLm = lm;
+        }
         drawFrame();
       }
     }catch(e){ /* a missed frame is fine; keep last good preview */ }
@@ -3774,6 +3810,18 @@ body::after{
     const THROW_WR = (hand === 'right') ? MP.R_WR : MP.L_WR;
     const vis = (lm, idx) => (lm && lm[idx] && lm[idx].v > 0.2) ? lm[idx] : null;
 
+    // Landmarks are normalized (x by width, y by height), so on a 16:9 crop a
+    // horizontal move reads ~44% smaller than the same move vertically. The
+    // wrist whip at release is mostly horizontal, so measure all motion in an
+    // aspect-corrected space where the two axes are comparable.
+    const AR = canvas.width / Math.max(1, canvas.height);
+    const spd2 = (p0, p1) => Math.hypot((p1.x - p0.x) * AR, p1.y - p0.y);
+    // 3-tap moving average; nulls (occluded joints) are skipped, not zeroed.
+    const smooth3 = (arr) => arr.map((_, i) => {
+      const w = [arr[i-1], arr[i], arr[i+1]].filter(x => x != null);
+      return w.length ? w.reduce((a,b) => a + b, 0) / w.length : null;
+    });
+
     // The delivery is detected by anchoring on the ONE unmistakable event and
     // working outward from it. Earlier versions picked each phase with its own
     // independent global search, which fell apart on real clips: a long clip can
@@ -3792,11 +3840,12 @@ body::after{
     // anchoring on peak speed lands release a touch late. The ball actually
     // leaves at peak forward acceleration — the steepest jump in wrist speed on
     // the way UP to that peak — which is a frame or two earlier.
-    const wristSpd = samples.map((s, i) => {
+    // Smoothed so a single noisy detection can't fake the whip's speed peak.
+    const wristSpd = smooth3(samples.map((s, i) => {
       if(i === 0) return null;
       const w0 = vis(samples[i-1].lm, THROW_WR), w1 = vis(s.lm, THROW_WR);
-      return (w0 && w1) ? Math.hypot(w1.x - w0.x, w1.y - w0.y) : null;
-    });
+      return (w0 && w1) ? spd2(w0, w1) : null;
+    }));
     let spdPeakIdx = -1, bestSpeed = -Infinity;
     for(let i = 1; i < samples.length; i++){
       const sp = wristSpd[i];
@@ -3822,11 +3871,7 @@ body::after{
       }
       return best; // null if neither leg visible; larger = knee higher above hip
     };
-    const rawElev = samples.map(s => legElev(s.lm));
-    const smoothElev = rawElev.map((_, i) => {
-      const vals = [rawElev[i-1], rawElev[i], rawElev[i+1]].filter(x => x != null);
-      return vals.length ? vals.reduce((a,b) => a + b, 0) / vals.length : null;
-    });
+    const smoothElev = smooth3(samples.map(s => legElev(s.lm)));
     let legliftIdx = -1, bestElev = -Infinity;
     for(let i = 1; i < releaseIdx; i++){
       const e = smoothElev[i];
@@ -3850,14 +3895,10 @@ body::after{
     if(lLift == null && rLift != null) strideAnkIdx = MP.R_ANK;
     else if(lLift != null && rLift != null) strideAnkIdx = (lLift.y <= rLift.y) ? MP.L_ANK : MP.R_ANK;
     const ankPos = samples.map(s => ankPtOf(s.lm, strideAnkIdx));
-    const rawAnkSpd = ankPos.map((p, i) => {
+    const ankSpd = smooth3(ankPos.map((p, i) => {
       if(i === 0 || p == null || ankPos[i-1] == null) return null;
-      return Math.hypot(p.x - ankPos[i-1].x, p.y - ankPos[i-1].y);
-    });
-    const ankSpd = rawAnkSpd.map((_, i) => {
-      const w = [rawAnkSpd[i-1], rawAnkSpd[i], rawAnkSpd[i+1]].filter(x => x != null);
-      return w.length ? w.reduce((a,b) => a + b, 0) / w.length : null;
-    });
+      return spd2(ankPos[i-1], p);
+    }));
     let peakAnkSpd = 0;
     for(let i = legliftIdx; i <= releaseIdx; i++){ if(ankSpd[i] != null && ankSpd[i] > peakAnkSpd) peakAnkSpd = ankSpd[i]; }
     let footplantIdx = -1;
@@ -3877,7 +3918,7 @@ body::after{
       const a = vis(samples[i].lm, FRONT.hip);
       const b = vis(samples[i - 1].lm, FRONT.hip);
       if(a && b && vis(samples[i].lm, MP.NOSE)){
-        const motion = Math.hypot(a.x - b.x, a.y - b.y);
+        const motion = spd2(b, a);
         if(motion < leastMotion){ leastMotion = motion; referenceIdx = i; }
       }
     }
@@ -3903,20 +3944,16 @@ body::after{
       }
       return arr;
     }
-    const smooth3 = (arr) => arr.map((_, i) => {
-      const w = [arr[i-1], arr[i], arr[i+1]].filter(x => x != null);
-      return w.length ? w.reduce((a,b) => a + b, 0) / w.length : null;
-    });
     try {
       // RELEASE — the ball leaves as the wrist whips up to top speed. Find the
-      // fine speed peak, then take the frame where speed first reaches 85% of it
+      // fine speed peak, then take the frame where speed first reaches 95% of it
       // on the way up (the steep release ramp, a hair before peak speed).
       autoDetectLabel.textContent = 'Refining…';
       const fr = await fineSamples(samples[releaseIdx].t, step * 1.1);
       const frSpd = fr.map((f, k) => {
         if(k === 0) return null;
         const w0 = vis(fr[k-1].lm, THROW_WR), w1 = vis(f.lm, THROW_WR);
-        return (w0 && w1) ? Math.hypot(w1.x - w0.x, w1.y - w0.y) : null;
+        return (w0 && w1) ? spd2(w0, w1) : null;
       });
       const frSp = smooth3(frSpd);
       let fpk = -1, fpv = -Infinity;
@@ -3936,7 +3973,7 @@ body::after{
       const ffPos = ff.map(f => ankPtOf(f.lm, strideAnkIdx));
       const ffSpd = smooth3(ffPos.map((p, k) => {
         if(k === 0 || p == null || ffPos[k-1] == null) return null;
-        return Math.hypot(p.x - ffPos[k-1].x, p.y - ffPos[k-1].y);
+        return spd2(ffPos[k-1], p);
       }));
       let ffPeak = 0, ffEndK = 0;
       for(let k = 0; k < ff.length; k++){
