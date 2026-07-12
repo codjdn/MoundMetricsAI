@@ -3807,7 +3807,6 @@ body::after{
     const FRONT = (hand === 'right')
       ? { knee:MP.L_KNEE, ank:MP.L_ANK, hip:MP.L_HIP }
       : { knee:MP.R_KNEE, ank:MP.R_ANK, hip:MP.R_HIP };
-    const THROW_WR = (hand === 'right') ? MP.R_WR : MP.L_WR;
     const vis = (lm, idx) => (lm && lm[idx] && lm[idx].v > 0.2) ? lm[idx] : null;
 
     // Landmarks are normalized (x by width, y by height), so on a 16:9 crop a
@@ -3840,12 +3839,36 @@ body::after{
     // anchoring on peak speed lands release a touch late. The ball actually
     // leaves at peak forward acceleration — the steepest jump in wrist speed on
     // the way UP to that peak — which is a frame or two earlier.
-    // Smoothed so a single noisy detection can't fake the whip's speed peak.
-    const wristSpd = smooth3(samples.map((s, i) => {
+    // Wrist speed measured as NET displacement across two steps: a tracker
+    // glitch teleports the wrist out and back — two big steps that cancel —
+    // while a real whip is sustained, directional travel that adds up. Plain
+    // per-step speed let a single glitch anywhere in the clip out-score the
+    // actual throw and drag every phase pick with it. Smoothed on top so no
+    // lone sample decides the peak.
+    const net2 = (vecs) => vecs.map((v, i) => {
+      if(!v) return null;
+      const n = vecs[i+1];
+      return n ? Math.hypot(v.x + n.x, v.y + n.y) / 2 : Math.hypot(v.x, v.y);
+    });
+    // Watch BOTH wrists and take the faster, for the same reason legElev
+    // measures both knees: MediaPipe's L/R labels flip intermittently on side
+    // views, so the handedness-picked wrist can silently be the glove hand.
+    // At the whip only the throwing hand moves that fast, so the max is safe —
+    // and a label flip mid-step reads as out-and-back, which net2 suppresses.
+    const stepVecs = (arr, idx) => arr.map((s, i) => {
       if(i === 0) return null;
-      const w0 = vis(samples[i-1].lm, THROW_WR), w1 = vis(s.lm, THROW_WR);
-      return (w0 && w1) ? spd2(w0, w1) : null;
-    }));
+      const w0 = vis(arr[i-1].lm, idx), w1 = vis(s.lm, idx);
+      return (w0 && w1) ? { x:(w1.x - w0.x) * AR, y: w1.y - w0.y } : null;
+    });
+    const whipSpd = (arr) => {
+      const a = net2(stepVecs(arr, MP.L_WR));
+      const b = net2(stepVecs(arr, MP.R_WR));
+      return smooth3(a.map((v, i) => {
+        const w = b[i];
+        return (v == null) ? w : (w == null ? v : Math.max(v, w));
+      }));
+    };
+    const wristSpd = whipSpd(samples);
     let spdPeakIdx = -1, bestSpeed = -Infinity;
     for(let i = 1; i < samples.length; i++){
       const sp = wristSpd[i];
@@ -3905,7 +3928,9 @@ body::after{
     if(peakAnkSpd > 0){
       const moveThresh = 0.2 * peakAnkSpd;   // "still moving" cutoff
       for(let j = releaseIdx - 1; j > legliftIdx; j--){
-        if(ankSpd[j] != null && ankSpd[j] > moveThresh){ footplantIdx = j + 1; break; }
+        // speed[j] is the move INTO sample j, so the last moving sample is
+        // the arrival itself — taking j+1 here biased the landing late.
+        if(ankSpd[j] != null && ankSpd[j] > moveThresh){ footplantIdx = j; break; }
       }
     }
     if(footplantIdx < 0 || footplantIdx <= legliftIdx || footplantIdx >= releaseIdx){
@@ -3950,12 +3975,8 @@ body::after{
       // on the way up (the steep release ramp, a hair before peak speed).
       autoDetectLabel.textContent = 'Refining…';
       const fr = await fineSamples(samples[releaseIdx].t, step * 1.1);
-      const frSpd = fr.map((f, k) => {
-        if(k === 0) return null;
-        const w0 = vis(fr[k-1].lm, THROW_WR), w1 = vis(f.lm, THROW_WR);
-        return (w0 && w1) ? spd2(w0, w1) : null;
-      });
-      const frSp = smooth3(frSpd);
+      // Same glitch-proof, label-agnostic whip signal as the coarse pass.
+      const frSp = whipSpd(fr);
       let fpk = -1, fpv = -Infinity;
       for(let k = 1; k < fr.length; k++){ if(frSp[k] != null && frSp[k] > fpv){ fpv = frSp[k]; fpk = k; } }
       if(fpk > 0 && fpv > 0){
@@ -3971,10 +3992,11 @@ body::after{
       const ffCenter = (refined.release ? refined.release.t : samples[releaseIdx].t);
       const ff = await fineSamples(samples[footplantIdx].t, step * 2.5);
       const ffPos = ff.map(f => ankPtOf(f.lm, strideAnkIdx));
-      const ffSpd = smooth3(ffPos.map((p, k) => {
+      const ffRaw = ffPos.map((p, k) => {
         if(k === 0 || p == null || ffPos[k-1] == null) return null;
         return spd2(ffPos[k-1], p);
-      }));
+      });
+      const ffSpd = smooth3(ffRaw);   // smoothed only for a robust peak estimate
       let ffPeak = 0, ffEndK = 0;
       for(let k = 0; k < ff.length; k++){
         if(ff[k].t >= ffCenter){ ffEndK = k - 1; break; }
@@ -3984,11 +4006,15 @@ body::after{
       let ffPick = -1;
       if(ffPeak > 0){
         const moveT = 0.2 * ffPeak;
-        for(let k = ffEndK; k > 0; k--){
-          if(ffSpd[k] != null && ffSpd[k] > moveT){
-            ffPick = (k + 1 <= ffEndK) ? k + 1 : k;
-            break;
-          }
+        // Walk back to the end of the stride's sustained travel. Raw speed,
+        // not smoothed: smoothing smears motion a frame past contact, which
+        // read as a late landing. speed[k] is the move INTO frame k, so the
+        // last moving frame IS the arrival/contact frame — commit k itself,
+        // not the frame after it. Requiring two consecutive moving frames
+        // keeps isolated post-contact jitter from faking a later stop.
+        for(let k = ffEndK; k > 1; k--){
+          if(ffRaw[k] != null && ffRaw[k] > moveT &&
+             ffRaw[k-1] != null && ffRaw[k-1] > moveT){ ffPick = k; break; }
         }
       }
       if(ffPick >= 0 && ff[ffPick].lm) refined.footplant = ff[ffPick];
@@ -4035,7 +4061,11 @@ body::after{
     for(const phase of PHASE_ORDER){
       const base = refined[phase] || samples[picks[phase]];
       if(!base) continue;
-      const targetT = Math.min((video.duration || base.t + frameNudge) - 0.001, base.t + frameNudge);
+      // Foot plant is exempt from the nudge: its walk-back already commits
+      // the contact frame itself, so stepping a frame later — right for the
+      // other phases, whose signals lag an extra frame — read as a late landing.
+      const nudge = (phase === 'footplant') ? 0 : frameNudge;
+      const targetT = Math.min((video.duration || base.t + nudge) - 0.001, base.t + nudge);
       const lm = await detectPrimed(targetT);
       if(lm)              finals[phase] = { t: targetT, lm: lm };
       else if(base.lm)    finals[phase] = { t: base.t,  lm: base.lm };
