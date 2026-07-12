@@ -107,6 +107,13 @@
 html{ height:100%; }
 html,body{ touch-action:manipulation; }
 body{ min-height:100%; }
+/* Don't rubber-band the document past its edges: the bounce drags every
+   sticky/fixed element down with the page, so the global header would slide
+   away from the top. Chrome, Firefox and macOS Safari honor this; iOS Safari
+   ignores it on the document scroller, so the header-pin script at the end
+   of <body> counter-translates the header during the bounce there. In-range
+   scrolling is untouched, so Safari's toolbar still shrinks on scroll. */
+html,body{ overscroll-behavior-y:none; }
 
 body{
   font-family:'Barlow',system-ui,sans-serif;
@@ -6016,6 +6023,37 @@ body::after{
     if(ping.parentNode) ping.parentNode.removeChild(ping);
     if(t) t.appendChild(ping);
   }, 350);
+})();
+</script>
+
+<!-- =====================================================================
+     HEADER OVERSCROLL PIN — iOS Safari ignores overscroll-behavior on the
+     document scroller and drags sticky elements down with the page during
+     the top rubber-band bounce, so the global header (brand, tabs, Back)
+     would slide away from the top. While the page is over-scrolled past the
+     top (scrollY < 0) this counter-translates the header by the overshoot
+     so it holds still while the rest of the page bounces. Scoped strictly
+     to the bounce: at scrollY >= 0 the transform is cleared, so in-range
+     scrolling — and Safari's shrinking toolbar, which depends on the
+     document itself scrolling — is untouched.
+     ===================================================================== -->
+<script>
+(function(){
+  "use strict";
+  var header = document.querySelector('.app-header');
+  if(!header) return;
+  var pinned = false;
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY;
+    if(y < 0){
+      /* page (header included) is dragged y px down — shift the header back up */
+      header.style.transform = 'translate3d(0,' + y + 'px,0)';
+      pinned = true;
+    }else if(pinned){
+      header.style.transform = '';
+      pinned = false;
+    }
+  }, { passive:true });
 })();
 </script>
 </body>
