@@ -1352,6 +1352,14 @@ canvas.busy{ opacity:.72; }
   .side-col{ width:300px; }
   .landmark-checklist{ grid-template-columns:1fr; }
 }
+/* Desktop only (tablet/phone layouts above are untouched): put the video
+   and the report side by side instead of stacked. The video column stays
+   sticky in its own lane while the report scrolls the page next to it. */
+@media (min-width:901px){
+  #workspacePanel{ display:flex; align-items:flex-start; gap:20px; }
+  .ws-body{ flex:0 0 46%; max-width:46%; }
+  .report-slot{ flex:1; min-width:0; border-top:none; border-left:1px solid var(--line); }
+}
 @media (max-width:720px){
   /* Video gets a constant share of the screen instead of ballooning to fill
      whatever the report doesn't need — it stays pinned via .ws-body's
@@ -1674,6 +1682,7 @@ body::after{
   border:1.5px solid rgba(255,255,255,.7); background:transparent; color:#fff;
 }
 .mm-consent-banner button#mm-consent-accept{ background:var(--navy); border-color:var(--navy); }
+.mm-consent-banner[hidden]{ display:none; }
 </style>
 </head>
 <body>
