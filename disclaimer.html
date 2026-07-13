@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH"></script>
+  <!-- Google tag (gtag.js) — only loads after the visitor accepts analytics in the consent banner below -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-X22XJ96MXH');
+    function mmLoadAnalytics(){
+      if (window.gtag) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-X22XJ96MXH', {
+        'anonymize_ip': true,
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false
+      });
+    }
+    try{ if (localStorage.getItem('mm-analytics-consent') === 'accepted') mmLoadAnalytics(); }catch(_){}
   </script>
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -17,9 +30,14 @@
 <meta name="description" content="Medical disclaimer for Mound Metrics AI, a browser-based pitching mechanics analysis tool.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<script data-goatcounter="https://YOUR-CODE.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/barlow-400.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/barlow-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/barlow-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:700; font-display:swap; src:url('assets/fonts/barlow-700.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/barlow-condensed-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/barlow-condensed-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:700; font-display:swap; src:url('assets/fonts/barlow-condensed-700.woff2') format('woff2'); }
 *{ box-sizing:border-box; margin:0; padding:0; }
 :root{
   --paper:#EDF0F4; --card:#FFFFFF; --ink:#14213A; --muted:#5C6B84;
@@ -76,9 +94,49 @@ a:hover{ color:var(--navy-deep); }
   transition:border-color .15s ease, color .15s ease, background .15s ease;
 }
 .back:hover{ border-color:var(--navy); color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep)); }
+
+.mm-consent-banner{
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
+  background:linear-gradient(165deg, rgba(21,44,76,.96), rgba(20,33,58,.96));
+  backdrop-filter:blur(10px); border-top:2px solid var(--red);
+  padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:14px; color:#fff; font-size:14px; text-align:center;
+}
+.mm-consent-banner p{ margin:0; max-width:640px; }
+.mm-consent-banner button{
+  border-radius:20px; padding:8px 18px; font-weight:600; font-size:13px; cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.7); background:transparent; color:#fff;
+}
+.mm-consent-banner button#mm-consent-accept{ background:var(--navy); border-color:var(--navy); }
 </style>
 </head>
 <body>
+
+<div id="mm-consent-banner" class="mm-consent-banner" hidden>
+  <p>We use analytics to count page visits. Your video and analysis data never leave your device.</p>
+  <div>
+    <button id="mm-consent-accept" type="button">Accept analytics</button>
+    <button id="mm-consent-decline" type="button">Decline</button>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY = 'mm-analytics-consent';
+  var banner = document.getElementById('mm-consent-banner');
+  try{
+    if (!localStorage.getItem(KEY)) banner.hidden = false;
+  }catch(_){}
+  document.getElementById('mm-consent-accept').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'accepted'); }catch(_){}
+    banner.hidden = true;
+    mmLoadAnalytics();
+  });
+  document.getElementById('mm-consent-decline').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'declined'); }catch(_){}
+    banner.hidden = true;
+  });
+})();
+</script>
 
 <header class="app-header"><a href="index.html"><img class="hdr-logo" src="assets/app-icon.png" alt="" width="28" height="28">Mound Metrics AI</a></header>
 

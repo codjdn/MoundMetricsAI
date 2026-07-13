@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH"></script>
+  <!-- Google tag (gtag.js) — only loads after the visitor accepts analytics in the consent banner below -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-X22XJ96MXH');
+    function mmLoadAnalytics(){
+      if (window.gtag) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-X22XJ96MXH', {
+        'anonymize_ip': true,
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false
+      });
+    }
+    try{ if (localStorage.getItem('mm-analytics-consent') === 'accepted') mmLoadAnalytics(); }catch(_){}
   </script>
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com; connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://www.googletagmanager.com; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -41,23 +54,21 @@
       ->  http://localhost:8000/mound-metrics-ai.html
 -->
 
-<!-- MediaPipe Pose (BlazePose). Classic script so the page works from file:// -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js" crossorigin="anonymous"></script>
-
-<!--
-  ANALYTICS (visit counter only — no cookies, no personal data)
-  ---------------------------------------------------------------
-  This uses GoatCounter (free, open-source, privacy-friendly): https://www.goatcounter.com/
-  1. Sign up for a free account at goatcounter.com and pick a site code, e.g. "moundmetrics".
-  2. Replace YOUR-CODE below with that site code.
-  3. Do the same in privacy.html and disclaimer.html.
-  Until you replace it, this script simply won't load (goatcounter.YOUR-CODE.com doesn't exist) —
-  it won't break the app.
--->
-<script data-goatcounter="https://YOUR-CODE.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<!-- MediaPipe Pose (BlazePose). Classic script so the page works from file://
+     integrity pinned to @mediapipe/pose@0.5.1675469404 — regenerate the hash if the version changes -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js" integrity="sha384-qcJQ+n/ZcF15Xu2EoRupB4Av+GEAGeW0Td1mp2A90u0NdNLzLYQVMUq1Ax1YAHqk" crossorigin="anonymous"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/barlow-400.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/barlow-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/barlow-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:700; font-display:swap; src:url('assets/fonts/barlow-700.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/barlow-condensed-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/barlow-condensed-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:700; font-display:swap; src:url('assets/fonts/barlow-condensed-700.woff2') format('woff2'); }
+@font-face{ font-family:'IBM Plex Mono'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-mono-400.woff2') format('woff2'); }
+@font-face{ font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-mono-500.woff2') format('woff2'); }
+@font-face{ font-family:'IBM Plex Mono'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/ibm-plex-mono-600.woff2') format('woff2'); }
 
 *{ box-sizing:border-box; margin:0; padding:0; }
 
@@ -1650,9 +1661,48 @@ body::after{
 }
 @media print{ .beckon-ping, .ink-ripple-wrap{ display:none !important; } }
 
+.mm-consent-banner{
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
+  background:linear-gradient(165deg, rgba(21,44,76,.96), rgba(20,33,58,.96));
+  backdrop-filter:blur(10px); border-top:2px solid var(--red);
+  padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:14px; color:#fff; font-size:14px; text-align:center;
+}
+.mm-consent-banner p{ margin:0; max-width:640px; }
+.mm-consent-banner button{
+  border-radius:20px; padding:8px 18px; font-weight:600; font-size:13px; cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.7); background:transparent; color:#fff;
+}
+.mm-consent-banner button#mm-consent-accept{ background:var(--navy); border-color:var(--navy); }
 </style>
 </head>
 <body>
+
+<div id="mm-consent-banner" class="mm-consent-banner" hidden>
+  <p>We use analytics to count page visits. Your video and analysis data never leave your device.</p>
+  <div>
+    <button id="mm-consent-accept" type="button">Accept analytics</button>
+    <button id="mm-consent-decline" type="button">Decline</button>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY = 'mm-analytics-consent';
+  var banner = document.getElementById('mm-consent-banner');
+  try{
+    if (!localStorage.getItem(KEY)) banner.hidden = false;
+  }catch(_){}
+  document.getElementById('mm-consent-accept').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'accepted'); }catch(_){}
+    banner.hidden = true;
+    mmLoadAnalytics();
+  });
+  document.getElementById('mm-consent-decline').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'declined'); }catch(_){}
+    banner.hidden = true;
+  });
+})();
+</script>
 
 <!-- ============ GLOBAL HEADER (brand + centered tabs) ============ -->
 <!-- Lives OUTSIDE .app so it spans the full viewport width always -->

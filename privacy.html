@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH"></script>
+  <!-- Google tag (gtag.js) — only loads after the visitor accepts analytics in the consent banner below -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-X22XJ96MXH');
+    function mmLoadAnalytics(){
+      if (window.gtag) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-X22XJ96MXH', {
+        'anonymize_ip': true,
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false
+      });
+    }
+    try{ if (localStorage.getItem('mm-analytics-consent') === 'accepted') mmLoadAnalytics(); }catch(_){}
   </script>
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -17,9 +30,14 @@
 <meta name="description" content="Privacy policy for Mound Metrics AI. Video is processed entirely in your browser and never uploaded.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<script data-goatcounter="https://YOUR-CODE.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/barlow-400.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/barlow-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/barlow-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:700; font-display:swap; src:url('assets/fonts/barlow-700.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/barlow-condensed-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/barlow-condensed-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:700; font-display:swap; src:url('assets/fonts/barlow-condensed-700.woff2') format('woff2'); }
 *{ box-sizing:border-box; margin:0; padding:0; }
 :root{
   --paper:#EDF0F4; --card:#FFFFFF; --ink:#14213A; --muted:#5C6B84;
@@ -79,9 +97,49 @@ a:hover{ color:var(--navy-deep); }
   transition:border-color .15s ease, color .15s ease, background .15s ease;
 }
 .back:hover{ border-color:var(--navy); color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep)); }
+
+.mm-consent-banner{
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
+  background:linear-gradient(165deg, rgba(21,44,76,.96), rgba(20,33,58,.96));
+  backdrop-filter:blur(10px); border-top:2px solid var(--red);
+  padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:14px; color:#fff; font-size:14px; text-align:center;
+}
+.mm-consent-banner p{ margin:0; max-width:640px; }
+.mm-consent-banner button{
+  border-radius:20px; padding:8px 18px; font-weight:600; font-size:13px; cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.7); background:transparent; color:#fff;
+}
+.mm-consent-banner button#mm-consent-accept{ background:var(--navy); border-color:var(--navy); }
 </style>
 </head>
 <body>
+
+<div id="mm-consent-banner" class="mm-consent-banner" hidden>
+  <p>We use analytics to count page visits. Your video and analysis data never leave your device.</p>
+  <div>
+    <button id="mm-consent-accept" type="button">Accept analytics</button>
+    <button id="mm-consent-decline" type="button">Decline</button>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY = 'mm-analytics-consent';
+  var banner = document.getElementById('mm-consent-banner');
+  try{
+    if (!localStorage.getItem(KEY)) banner.hidden = false;
+  }catch(_){}
+  document.getElementById('mm-consent-accept').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'accepted'); }catch(_){}
+    banner.hidden = true;
+    mmLoadAnalytics();
+  });
+  document.getElementById('mm-consent-decline').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'declined'); }catch(_){}
+    banner.hidden = true;
+  });
+})();
+</script>
 
 <header class="app-header"><a href="index.html"><img class="hdr-logo" src="assets/app-icon.png" alt="" width="28" height="28">Mound Metrics AI</a></header>
 
@@ -108,17 +166,32 @@ a:hover{ color:var(--navy-deep); }
   <table>
     <tr><th>Item</th><th>What it is</th><th>Why</th></tr>
     <tr><td>Pose-detection model files</td><td>A one-time download of the AI model from a third-party CDN (jsDelivr), cached by your browser</td><td>Needed to run pose detection locally — no video or personal data is included in this request</td></tr>
-    <tr><td>Anonymous page visits</td><td>A basic, cookie-free visit counter (page viewed, rough browser/OS type, referring site)</td><td>So we can see how many people use the app — see below</td></tr>
+    <tr><td>Page visits (only if you accept analytics)</td><td>Google Analytics (GA4): page viewed, rough browser/OS type, referring site, approximate location</td><td>So we can see how many people use the app — see below</td></tr>
   </table>
 
   <h2>Analytics</h2>
-  <p>We use a privacy-focused analytics service to count visits. It does not use cookies, does not build advertising profiles, and does not track you across other websites. It cannot see your video, your inputs, or anything you do inside the app — only that a page on this site was loaded.</p>
+  <p>We use Google Analytics (GA4) to count page visits. It only loads after you accept the consent banner shown on your first visit — if you decline, no analytics script loads and nothing is sent to Google.</p>
+  <h3>What GA4 collects (only with consent)</h3>
+  <ul>
+    <li>Page views and session duration</li>
+    <li>Browser type, operating system, and device type</li>
+    <li>Referring website (where you came from)</li>
+    <li>Approximate geographic location (city-level, not precise)</li>
+  </ul>
+  <h3>What GA4 never collects</h3>
+  <ul>
+    <li>Your video file or any video frames</li>
+    <li>Your measurements, angles, or analysis data</li>
+    <li>Pitcher names, ages, or athlete information</li>
+    <li>Anything you type inside the app</li>
+  </ul>
+  <p>We've configured GA4 to anonymize IP addresses and disable ad personalization and Google Signals (no advertising profiles are built from this data). You can withdraw consent at any time by clearing this site's local storage, which brings the banner back on your next visit, or by adjusting your <a href="https://myaccount.google.com/data-and-privacy" target="_blank" rel="noopener">Google Account privacy settings</a>.</p>
 
   <h2>No accounts, no login</h2>
   <p>There is nothing to sign up for. We don't collect names, emails, or any other personal information, and there's no server-side database of users.</p>
 
   <h2>Third parties</h2>
-  <p>This site is hosted on GitHub Pages and loads the pose-detection model from the jsDelivr CDN. Both may log basic technical request data (like IP address) as part of normal web infrastructure operation — this is standard for any website and outside our control, and is covered by their own policies, not ours.</p>
+  <p>This site is hosted on GitHub Pages and loads the pose-detection model from the jsDelivr CDN. Both may log basic technical request data (like IP address) as part of normal web infrastructure operation — this is standard for any website and outside our control, and is covered by their own policies, not ours. If you accept the analytics consent banner, Google Analytics also receives the visit data described above, governed by Google's own privacy policy.</p>
 
   <h2>Children's privacy</h2>
   <p>The app includes an age-range option for describing a pitcher being analyzed, which is not the same as collecting data from a child user. No personal information about any pitcher, of any age, is collected or transmitted by this app.</p>
