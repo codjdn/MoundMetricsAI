@@ -20,9 +20,14 @@
       });
     }
     try{ if (localStorage.getItem('mm-analytics-consent') === 'accepted') mmLoadAnalytics(); }catch(_){}
+    // Event helper — no-ops unless the visitor accepted analytics (gtag only
+    // exists after mmLoadAnalytics has run).
+    function mmTrack(name, params){
+      try{ if (window.gtag) window.gtag('event', name, params || {}); }catch(_){}
+    }
   </script>
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com; connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://www.googletagmanager.com; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com; connect-src 'self' https://cdn.jsdelivr.net https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -4991,8 +4996,9 @@ body::after{
     renderPriorities();
   }
 
-  function showReport(){
+  function showReport(source){
     buildReport();
+    mmTrack('generate_report', { source: source || 'auto_detect' });
     populatePrintHead();
     // Thumbnails are only generated for the PDF (they seek the video), so clear
     // any stale ones when the report is (re)built.
@@ -5068,6 +5074,7 @@ body::after{
       populatePrintHead();
       await generateReportThumbnails();
     }catch(_){}
+    mmTrack('export_report_pdf');
     pdfBtn.textContent = prevTxt;
     pdfBtn.disabled = false;
     // Give the browser a beat to paint the thumbnails before the print dialog.
@@ -5498,7 +5505,7 @@ body::after{
         updateModeToggleButtons('setup');
         setPhase('reference');
         drawFrame();
-        if(PHASE_ORDER.some(p => state.phases[p].time !== null)) showReport();
+        if(PHASE_ORDER.some(p => state.phases[p].time !== null)) showReport('saved_session');
         saveStatus.textContent = 'Loaded — saved ' + new Date(rec.savedAt).toLocaleString();
         window.scrollTo({ top:0, behavior:'smooth' });
 
