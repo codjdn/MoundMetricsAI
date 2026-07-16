@@ -2939,6 +2939,42 @@ body::after{
     destCtx.drawImage(video, sx, sy, sw, sh, 0, 0, destCanvas.width, destCanvas.height);
   }
 
+  // Blur rescue: a mild unsharp pass over a detection frame. A whipping
+  // forearm (or striding ankle) motion-blurs, and the pose model then hands
+  // the joint back with visibility too low to trust even though the smear is
+  // centered near the right spot. Re-detecting the SAME frame after an edge
+  // sharpen often restores enough local contrast for the model to commit to
+  // the joint. Plain JS 3×3 convolution rather than ctx.filter — Safari
+  // doesn't support canvas filters — and the detection canvas is ≤640px wide,
+  // so a pass costs ~1 ms.
+  let sharpCanvas = null;
+  function sharpenedCopy(src){
+    if(!sharpCanvas) sharpCanvas = document.createElement('canvas');
+    const w = src.width, h = src.height;
+    sharpCanvas.width = w; sharpCanvas.height = h;
+    const sctx = sharpCanvas.getContext('2d', { willReadFrequently: true });
+    sctx.drawImage(src, 0, 0);
+    const img = sctx.getImageData(0, 0, w, h);
+    const s = img.data, out = new Uint8ClampedArray(s.length);
+    const A = 0.8;              // sharpen amount: out = (1+4A)·px − A·(4-neighborhood)
+    const C = 1 + 4 * A;
+    for(let y = 0; y < h; y++){
+      const up = (y === 0 ? 0 : -w * 4), dn = (y === h - 1 ? 0 : w * 4);
+      for(let x = 0; x < w; x++){
+        const i = (y * w + x) * 4;
+        const lf = (x === 0 ? 0 : -4), rt = (x === w - 1 ? 0 : 4);
+        for(let ch = 0; ch < 3; ch++){
+          const j = i + ch;
+          out[j] = C * s[j] - A * (s[j + up] + s[j + dn] + s[j + lf] + s[j + rt]);
+        }
+        out[i + 3] = 255;
+      }
+    }
+    img.data.set(out);
+    sctx.putImageData(img, 0, 0);
+    return sharpCanvas;
+  }
+
   // ===============================================================
   // Auto-framing — as soon as a clip is uploaded, run the pose model
   // over a spread of frames to find where the pitcher lives, then lock
@@ -3532,10 +3568,26 @@ body::after{
   function mapLandmarks(lm, phase, w, h){
     const points = {};
 
-    function set(key, idx){
+    // Fast distal joints (wrists, elbows, ankles, toes) motion-blur at the
+    // whip and stride, and the model reports them with low visibility even
+    // when their position is still right. That used to knock the throwing
+    // wrist/elbow out of the committed release frame — and the elbow-extension
+    // metric with it — on exactly the clips where the arm moves fastest. When
+    // a parent joint is given, keep a low-vis reading (down to v=0.1) if it
+    // sits an anatomically plausible distance from a CONFIDENT parent; a
+    // tracker glitch teleports far from its parent and is still rejected.
+    // Same rule auto-detect's speed signals use.
+    function set(key, idx, parIdx){
       if(idx == null || !lm[idx]) return;
       const p = lm[idx];
-      if(p.v > 0.2) points[key] = { x:p.x*w, y:p.y*h };
+      if(p.v > 0.2){ points[key] = { x:p.x*w, y:p.y*h }; return; }
+      if(parIdx == null || p.v <= 0.1) return;
+      const par = lm[parIdx];
+      if(!par || par.v <= 0.2) return;
+      const ar = w / Math.max(1, h);   // aspect-corrected normalized distance
+      if(Math.hypot((p.x - par.x) * ar, p.y - par.y) <= 0.3){
+        points[key] = { x:p.x*w, y:p.y*h };
+      }
     }
 
     // Head (all phases): track the TOP of the head (crown), not the nose.
@@ -3578,26 +3630,26 @@ body::after{
     // detected limb, except at release only the throwing-side elbow is kept
     // (the glove arm is hard to see and unimportant for the metrics there).
     if(phase === 'release'){
-      if(state.handedness === 'right') set('r_el', MP.R_EL);
-      else                             set('l_el', MP.L_EL);
+      if(state.handedness === 'right') set('r_el', MP.R_EL, MP.R_SH);
+      else                             set('l_el', MP.L_EL, MP.L_SH);
     } else {
-      set('l_el', MP.L_EL); set('r_el', MP.R_EL);
+      set('l_el', MP.L_EL, MP.L_SH); set('r_el', MP.R_EL, MP.R_SH);
     }
 
     // Wrists: same rule as elbows.
     if(phase === 'release'){
-      if(state.handedness === 'right') set('r_wr', MP.R_WR);
-      else                             set('l_wr', MP.L_WR);
+      if(state.handedness === 'right') set('r_wr', MP.R_WR, MP.R_EL);
+      else                             set('l_wr', MP.L_WR, MP.L_EL);
     } else {
-      set('l_wr', MP.L_WR); set('r_wr', MP.R_WR);
+      set('l_wr', MP.L_WR, MP.L_EL); set('r_wr', MP.R_WR, MP.R_EL);
     }
 
     // Hips, knees, ankles (all phases)
     set('l_hip', MP.L_HIP); set('r_hip', MP.R_HIP);
     set('l_knee', MP.L_KNEE); set('r_knee', MP.R_KNEE);
-    set('l_ank', MP.L_ANK); set('r_ank', MP.R_ANK);
+    set('l_ank', MP.L_ANK, MP.L_KNEE); set('r_ank', MP.R_ANK, MP.R_KNEE);
     // Foot index = front (toe) of each foot; used to measure stride toe-to-toe.
-    set('l_foot', MP.L_FOOT); set('r_foot', MP.R_FOOT);
+    set('l_foot', MP.L_FOOT, MP.L_ANK); set('r_foot', MP.R_FOOT, MP.R_ANK);
 
     // Ground: lowest visible ankle/heel point, on every phase.
     {
@@ -4188,6 +4240,26 @@ body::after{
       return (d <= maxReach) ? p : null;      // plausible distance → keep the blur
     };
 
+    // Detect with blur rescue: when one of the given fast limbs ([jointIdx,
+    // parentIdx] pairs) comes back too blurred to read even through visBlur,
+    // re-run detection on an edge-sharpened copy of the same frame and keep
+    // whichever result reads those limbs more confidently. Only ever costs a
+    // second detect on the frames that actually failed, so the coarse scan's
+    // budget is untouched — it's applied in the fine windows and at commit,
+    // where a single frame's arm matters most.
+    const limbVis = (lm, pairs) => pairs.reduce((s, pr) => s + ((lm && lm[pr[0]]) ? lm[pr[0]].v : 0), 0);
+    const limbsOk = (lm, pairs) => pairs.every(pr => !!visBlur(lm, pr[0], pr[1], LIMB_REACH));
+    async function detectWithRescue(srcCanvas, pairs){
+      let lm = null;
+      try{ lm = await withTimeout(detect(srcCanvas), 8000); }catch(_){}
+      if(!pairs || limbsOk(lm, pairs)) return lm;
+      let lm2 = null;
+      try{ lm2 = await withTimeout(detect(sharpenedCopy(srcCanvas)), 8000); }catch(_){}
+      if(!lm2) return lm;
+      if(!lm) return lm2;
+      return (limbVis(lm2, pairs) > limbVis(lm, pairs)) ? lm2 : lm;
+    }
+
     // Interior angle at the throwing elbow (shoulder–elbow–wrist), in degrees;
     // 180° = a fully straight arm, smaller = more bent. Aspect-corrected so the
     // angle isn't skewed by the non-square pixel mapping, and blur-tolerant so a
@@ -4237,20 +4309,34 @@ body::after{
       const n = vecs[i+1];
       return n ? Math.hypot(v.x + n.x, v.y + n.y) / 2 : Math.hypot(v.x, v.y);
     });
+    // Position track for one wrist, blur-tolerant, with single-sample dropouts
+    // bridged by interpolation. Motion blur is worst at the exact whip frames —
+    // precisely where the speed signal is measured — so even with visBlur a
+    // one-sample hole could land right on the whip and erase the acceleration
+    // peak the release pick anchors on. An interpolated point lies on the
+    // straight line between its neighbors, so it cannot fake an out-and-back
+    // glitch (net2 still suppresses those); it only reconnects real travel.
+    const wristTrack = (arr, idx, parIdx) => {
+      const pos = arr.map(s => visBlur(s.lm, idx, parIdx, LIMB_REACH));
+      for(let i = 1; i < pos.length - 1; i++){
+        if(pos[i] == null && pos[i-1] != null && pos[i+1] != null){
+          pos[i] = { x:(pos[i-1].x + pos[i+1].x) / 2, y:(pos[i-1].y + pos[i+1].y) / 2 };
+        }
+      }
+      return pos;
+    };
+    const stepVecs = (pos) => pos.map((p, i) => {
+      if(i === 0 || !p || !pos[i-1]) return null;
+      return { x:(p.x - pos[i-1].x) * AR, y: p.y - pos[i-1].y };
+    });
     // Watch BOTH wrists and take the faster, for the same reason legElev
     // measures both knees: MediaPipe's L/R labels flip intermittently on side
     // views, so the handedness-picked wrist can silently be the glove hand.
     // At the whip only the throwing hand moves that fast, so the max is safe —
     // and a label flip mid-step reads as out-and-back, which net2 suppresses.
-    const stepVecs = (arr, idx, parIdx) => arr.map((s, i) => {
-      if(i === 0) return null;
-      const w0 = visBlur(arr[i-1].lm, idx, parIdx, LIMB_REACH);
-      const w1 = visBlur(s.lm, idx, parIdx, LIMB_REACH);
-      return (w0 && w1) ? { x:(w1.x - w0.x) * AR, y: w1.y - w0.y } : null;
-    });
     const whipSpd = (arr) => {
-      const a = net2(stepVecs(arr, MP.L_WR, MP.L_EL));
-      const b = net2(stepVecs(arr, MP.R_WR, MP.R_EL));
+      const a = net2(stepVecs(wristTrack(arr, MP.L_WR, MP.L_EL)));
+      const b = net2(stepVecs(wristTrack(arr, MP.R_WR, MP.R_EL)));
       return smooth3(a.map((v, i) => {
         const w = b[i];
         return (v == null) ? w : (w == null ? v : Math.max(v, w));
@@ -4330,6 +4416,26 @@ body::after{
       footplantIdx = Math.max(legliftIdx + 1, releaseIdx - Math.max(1, Math.round(0.3 / step)));
     }
 
+    // Which way is home plate? The stride foot's travel from leg lift to foot
+    // plant gives the throw's horizontal direction in the frame (+1 = right).
+    // Used below to gate the fine release pick to frames where the wrist is
+    // actually out in front of the shoulder. Stays 0 (gate disabled) when the
+    // stride barely moves horizontally or either endpoint is unreadable.
+    let throwDir = 0;
+    {
+      const a0 = ankPos[legliftIdx], a1 = ankPos[footplantIdx];
+      if(a0 && a1 && Math.abs(a1.x - a0.x) * AR > 0.04) throwDir = Math.sign(a1.x - a0.x);
+    }
+
+    // Fast limbs worth a sharpened re-detect per phase (see detectWithRescue):
+    // the throwing arm blurs hardest at release, the stride ankle through the
+    // plant. Reference and leg lift are slow frames — no rescue needed.
+    const strideKnee = (strideAnkIdx === MP.L_ANK) ? MP.L_KNEE : MP.R_KNEE;
+    const RESCUE = {
+      release:   [[THROW.wr, THROW.el], [THROW.el, THROW.sh]],
+      footplant: [[strideAnkIdx, strideKnee]]
+    };
+
     // Reference = the stillest visible frame before the leg lift.
     let referenceIdx = -1, leastMotion = Infinity;
     for(let i = 1; i < legliftIdx; i++){
@@ -4350,14 +4456,26 @@ body::after{
     // needs sub-grid precision.)
     const refined = {};   // phase -> { t, lm }
     const fineStep = Math.max(0.012, dur / 2500);
-    async function fineSamples(centerT, halfWin){
-      const t0 = Math.max(0, centerT - halfWin);
-      const t1 = Math.min(dur - 0.001, centerT + halfWin);
+    // Sample the clip's NATIVE frame grid, at frame midpoints so seek rounding
+    // can't slip a sample onto a neighboring frame. The old fixed-seconds step
+    // re-detected the same 30 fps frame ~3× — tripling the work for zero new
+    // information — and could commit a timestamp that sat between two frames.
+    // Stepping by whole frames (stride ≥ 1, matching fineStep on slo-mo clips)
+    // keeps the effective resolution while every sample, and therefore every
+    // pick, is a real frame. rescuePairs (optional) enables the sharpened
+    // re-detect for that window's fast limbs.
+    async function fineSamples(centerT, halfWin, rescuePairs){
+      const fd = videoFrameDur || (1/30);
+      const stride = Math.max(1, Math.round(fineStep / fd));
+      const kEnd = Math.floor((dur - 0.002) / fd);
+      const k0 = Math.max(0, Math.round((centerT - halfWin) / fd));
+      const k1 = Math.min(kEnd, Math.round((centerT + halfWin) / fd));
       const arr = [];
-      for(let t = t0; t <= t1 + 1e-9; t += fineStep){
+      for(let k = k0; k <= k1; k += stride){
+        const t = Math.min(dur - 0.001, (k + 0.5) * fd);
         await seekTo(t);
         drawVideoCropped(offctx, off);
-        let lm = null; try{ lm = await withTimeout(detect(off), 8000); }catch(_){}
+        const lm = await detectWithRescue(off, rescuePairs);
         arr.push({ t, lm });
       }
       return arr;
@@ -4376,7 +4494,7 @@ body::after{
       // out — and floored at the whip's ACCELERATION peak, so it can't drift into
       // the follow-through or back before the throw fires.
       autoDetectLabel.textContent = 'Refining…';
-      const fr = await fineSamples(samples[releaseIdx].t, step * 1.3);
+      const fr = await fineSamples(samples[releaseIdx].t, step * 1.3, RESCUE.release);
       // Same glitch-proof, label-agnostic whip signal as the coarse pass.
       const frSp = whipSpd(fr);
       let fpk = -1, fpv = -Infinity;
@@ -4395,9 +4513,28 @@ body::after{
         // arm is occluded through the window.
         const elb = smooth3(fr.map(f => elbowExt(f.lm)));
         const hi = Math.min(fr.length - 1, fpk + 1);
+        // The arm also reads dead straight deep in the follow-through, and a
+        // noisy frame can read straight while the arm is still coming through
+        // behind the body. A real release frame has the wrist OUT IN FRONT of
+        // the throwing shoulder, toward home plate — gate extension candidates
+        // on that (direction from the stride, computed above), and fall back
+        // to the ungated pick when the direction is unknown or the gate
+        // rejects every candidate (e.g. shoulder occluded through the window).
+        const wristFront = (lm) => {
+          if(!throwDir) return true;
+          const s = vis(lm, THROW.sh);
+          const w = visBlur(lm, THROW.wr, THROW.el, LIMB_REACH);
+          if(!s || !w) return false;
+          return (w.x - s.x) * throwDir > -0.01;
+        };
         let bestE = -Infinity, relE = -1;
         for(let k = relK; k <= hi; k++){
-          if(elb[k] != null && elb[k] > bestE && fr[k].lm){ bestE = elb[k]; relE = k; }
+          if(elb[k] != null && elb[k] > bestE && fr[k].lm && wristFront(fr[k].lm)){ bestE = elb[k]; relE = k; }
+        }
+        if(relE < 0){
+          for(let k = relK; k <= hi; k++){
+            if(elb[k] != null && elb[k] > bestE && fr[k].lm){ bestE = elb[k]; relE = k; }
+          }
         }
         refined.release = fr[(relE >= 0) ? relE : relK];
       }
@@ -4406,7 +4543,7 @@ body::after{
       // resolution and take the last frame the ankle is still moving before
       // release; contact is the next frame.
       const ffCenter = (refined.release ? refined.release.t : samples[releaseIdx].t);
-      const ff = await fineSamples(samples[footplantIdx].t, step * 2.5);
+      const ff = await fineSamples(samples[footplantIdx].t, step * 2.5, RESCUE.footplant);
       const ffPos = ff.map(f => ankPtOf(f.lm, strideAnkIdx));
       const ffRaw = ffPos.map((p, k) => {
         if(k === 0 || p == null || ffPos[k-1] == null) return null;
@@ -4456,7 +4593,7 @@ body::after{
     // tracker on a stale region from a temporally distant frame, which mangles
     // the legs; feeding the two preceding frames first lets the tracker lock onto
     // the body so the frame we keep is accurate — without the costly graph reset.
-    async function detectPrimed(targetT){
+    async function detectPrimed(targetT, rescuePairs){
       // Prime with frames spaced a real ~0.03s apart (not the raw frame step —
       // on a 240fps clip that's too small to move the tracker) so the ROI walks
       // onto the body before the frame we keep.
@@ -4467,8 +4604,11 @@ body::after{
           try{ await withTimeout(detect(off), 8000); }catch(_){}
         }
       }
+      // The kept frame gets the blur rescue: this is the detection the phase
+      // stores and the report measures, so a blurred-out throwing arm here
+      // costs the elbow-extension metric even when the frame PICK was right.
       await seekTo(targetT); drawVideoCropped(offctx, off);
-      try{ return await withTimeout(detect(off), 8000); }catch(_){ return null; }
+      return detectWithRescue(off, rescuePairs);
     }
 
     // Build the final frame for each phase: fine-refined when available,
@@ -4491,7 +4631,7 @@ body::after{
         const relBase = refined.release || samples[picks.release];
         if(relBase) targetT = Math.min(targetT, relBase.t - frameNudge);
       }
-      const lm = await detectPrimed(targetT);
+      const lm = await detectPrimed(targetT, RESCUE[phase]);
       if(lm)              finals[phase] = { t: targetT, lm: lm };
       else if(base.lm)    finals[phase] = { t: base.t,  lm: base.lm };
     }
