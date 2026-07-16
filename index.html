@@ -4146,6 +4146,10 @@ body::after{
     const FRONT = (hand === 'right')
       ? { knee:MP.L_KNEE, ank:MP.L_ANK, hip:MP.L_HIP }
       : { knee:MP.R_KNEE, ank:MP.R_ANK, hip:MP.R_HIP };
+    // Throwing-side arm, used to pin the exact release frame off elbow extension.
+    const THROW = (hand === 'right')
+      ? { sh:MP.R_SH, el:MP.R_EL, wr:MP.R_WR }
+      : { sh:MP.L_SH, el:MP.L_EL, wr:MP.L_WR };
     const vis = (lm, idx) => (lm && lm[idx] && lm[idx].v > 0.2) ? lm[idx] : null;
 
     // Landmarks are normalized (x by width, y by height), so on a 16:9 crop a
@@ -4184,15 +4188,35 @@ body::after{
       return (d <= maxReach) ? p : null;      // plausible distance → keep the blur
     };
 
+    // Interior angle at the throwing elbow (shoulder–elbow–wrist), in degrees;
+    // 180° = a fully straight arm, smaller = more bent. Aspect-corrected so the
+    // angle isn't skewed by the non-square pixel mapping, and blur-tolerant so a
+    // motion-blurred wrist/elbow at the whip still yields an angle rather than
+    // dropping out — this is the signal that pins the exact release frame.
+    const elbowExt = (lm) => {
+      const s = visBlur(lm, THROW.sh, THROW.el, LIMB_REACH);
+      const e = visBlur(lm, THROW.el, THROW.sh, LIMB_REACH);
+      const w = visBlur(lm, THROW.wr, THROW.el, LIMB_REACH);
+      if(!s || !e || !w) return null;
+      const v1x = (s.x - e.x) * AR, v1y = s.y - e.y;
+      const v2x = (w.x - e.x) * AR, v2y = w.y - e.y;
+      const d1 = Math.hypot(v1x, v1y), d2 = Math.hypot(v2x, v2y);
+      if(d1 < 1e-6 || d2 < 1e-6) return null;
+      let c = (v1x*v2x + v1y*v2y) / (d1*d2);
+      c = Math.max(-1, Math.min(1, c));
+      return Math.acos(c) * 180 / Math.PI;
+    };
+
     // The delivery is detected by anchoring on the ONE unmistakable event and
     // working outward from it. Earlier versions picked each phase with its own
     // independent global search, which fell apart on real clips: a long clip can
     // contain a warm-up or a second motion whose knee-lift or follow-through
     // out-scores the actual pitch, so leg lift would latch onto the wrong event
     // and foot plant + release cascaded off it. Instead:
-    //   release  = peak forward ACCELERATION of the throwing wrist (the instant
-    //              the hand is whipped through — the ball leaves here, a frame or
-    //              two before the wrist reaches its top SPEED);
+    //   release  = the throwing arm's STRAIGHTEST point at the whip — the wrist
+    //              whip's peak forward ACCELERATION fixes the region, and peak
+    //              throwing-elbow EXTENSION (ceilinged at peak wrist SPEED, where
+    //              the ball is gone) pins the exact frame the ball leaves;
     //   leg lift = the highest knee-above-hip BEFORE release;
     //   foot plant = the last "loaded" frame before the arm fires;
     //   reference = the stillest frame BEFORE leg lift.
@@ -4339,25 +4363,43 @@ body::after{
       return arr;
     }
     try {
-      // RELEASE — the ball leaves at the wrist's peak forward ACCELERATION: the
-      // steepest rise in whip speed on the way UP to top speed, a frame or two
-      // before the wrist reaches its peak SPEED. Mirror the coarse pass here at
-      // fine resolution. The old rule (first frame at 95% of peak speed) sat
-      // essentially AT peak speed and, with the +1 nudge on top, landed release
-      // a hair late; peak acceleration is the instant the hand is whipped through.
+      // RELEASE — the ball leaves as the throwing arm reaches its STRAIGHTEST.
+      // Two signals, each doing what it's best at:
+      //   • the wrist WHIP fixes the release REGION (robust against warm-up
+      //     throws and second motions elsewhere in the clip), and
+      //   • throwing-elbow EXTENSION pins the exact FRAME — the arm's straightest
+      //     point, which is a cleaner, less blur-prone signal than the exact
+      //     wrist position at the whip.
+      // The arm keeps straightening for a beat AFTER the ball is gone, so a bare
+      // "straightest frame" lands late. To keep it at true release, the elbow
+      // search is ceilinged at the wrist's peak SPEED — the instant the ball is
+      // out — and floored at the whip's ACCELERATION peak, so it can't drift into
+      // the follow-through or back before the throw fires.
       autoDetectLabel.textContent = 'Refining…';
-      const fr = await fineSamples(samples[releaseIdx].t, step * 1.1);
+      const fr = await fineSamples(samples[releaseIdx].t, step * 1.3);
       // Same glitch-proof, label-agnostic whip signal as the coarse pass.
       const frSp = whipSpd(fr);
       let fpk = -1, fpv = -Infinity;
       for(let k = 1; k < fr.length; k++){ if(frSp[k] != null && frSp[k] > fpv){ fpv = frSp[k]; fpk = k; } }
       if(fpk > 0 && fpv > 0){
+        // Floor: peak forward acceleration of the whip (the throw fires here).
         let bestA = -Infinity, relK = -1;
         for(let k = 2; k <= fpk; k++){
           const a = frSp[k], b = frSp[k-1];
           if(a != null && b != null && (a - b) > bestA && fr[k].lm){ bestA = a - b; relK = k; }
         }
-        if(relK > 0) refined.release = fr[relK];
+        if(relK < 0) relK = fpk;
+        // Exact frame: straightest throwing elbow between the acceleration peak
+        // and one frame past the speed peak (ball gone). Smoothed so a single
+        // noisy angle can't decide it; falls back to the acceleration pick if the
+        // arm is occluded through the window.
+        const elb = smooth3(fr.map(f => elbowExt(f.lm)));
+        const hi = Math.min(fr.length - 1, fpk + 1);
+        let bestE = -Infinity, relE = -1;
+        for(let k = relK; k <= hi; k++){
+          if(elb[k] != null && elb[k] > bestE && fr[k].lm){ bestE = elb[k]; relE = k; }
+        }
+        refined.release = fr[(relE >= 0) ? relE : relK];
       }
 
       // FOOT PLANT — the stride ankle stops moving. Scan a window at fine
@@ -4885,7 +4927,7 @@ body::after{
     { key:'gloveElbowFP',   label:'Glove arm position at landing',       simpleName:'Glove arm at landing', unit:'%', area:'glove_side',                   good:{'6-10':[-8,32],'11-14':[-6,30],'15-18':[-5,29],'18+':[-5,28]},   display:[-35,45] },
     { key:'backKneeFP',     label:'Back leg angle when you land',        simpleName:'Back leg at landing', unit:'°', area:'lower_drive',                   good:{'6-10':[140,180],'11-14':[142,178],'15-18':[144,177],'18+':[145,176]}, display:[100,180] },
     { key:'shoulderDropPct',label:'Shoulder drop at release',            simpleName:'Shoulder drop at release', unit:'%', area:'trunk',                   good:{'6-10':[2,18],'11-14':[2,17],'15-18':[2,16],'18+':[3,16]},    display:[-8,25] },
-    { key:'elbowRel',       label:'Throwing elbow straightness at release',simpleName:'Elbow extension at release', unit:'°', area:'arm_action',        good:{'6-10':[120,180],'11-14':[124,176],'15-18':[126,174],'18+':[128,172]}, display:[80,180] },
+    { key:'elbowRel',       label:'Throwing elbow straightness at release',simpleName:'Elbow extension at release', unit:'°', area:'arm_action',        good:{'6-10':[120,180],'11-14':[124,180],'15-18':[126,180],'18+':[128,180]}, display:[80,180] },
     { key:'hipDrivePct',    label:'Forward hip movement',                simpleName:'Hip drive through delivery', unit:'%', area:'lower_drive', higherBetter:true,   good:{'6-10':[1,20],'11-14':[1,19],'15-18':[1,18],'18+':[2,18]},    display:[-10,30] }
   ];
 
