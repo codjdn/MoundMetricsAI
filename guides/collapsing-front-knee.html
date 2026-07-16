@@ -26,16 +26,16 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>How to Analyze a Pitcher's Delivery from Video | Mound Metrics AI</title>
-<meta name="description" content="A step-by-step guide to filming and analyzing a pitching delivery with Mound Metrics AI — frame-by-frame mechanics feedback, processed entirely in your browser.">
-<link rel="canonical" href="https://moundmetrics.app/guides/getting-started.html">
+<title>The Collapsing Front Knee: A Hidden Power Leak in Pitching | Mound Metrics AI</title>
+<meta name="description" content="Why a collapsing front knee after foot plant quietly costs pitching velocity, the biomechanics behind it, and how to spot it frame by frame on video.">
+<link rel="canonical" href="https://moundmetrics.app/guides/collapsing-front-knee.html">
 <link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Mound Metrics AI">
-<meta property="og:title" content="How to Analyze a Pitcher's Delivery from Video | Mound Metrics AI">
-<meta property="og:description" content="A step-by-step guide to filming and analyzing a pitching delivery with Mound Metrics AI — frame-by-frame mechanics feedback, processed entirely in your browser.">
-<meta property="og:url" content="https://moundmetrics.app/guides/getting-started.html">
+<meta property="og:title" content="The Collapsing Front Knee: A Hidden Power Leak in Pitching | Mound Metrics AI">
+<meta property="og:description" content="Why a collapsing front knee after foot plant quietly costs pitching velocity, the biomechanics behind it, and how to spot it frame by frame on video.">
+<meta property="og:url" content="https://moundmetrics.app/guides/collapsing-front-knee.html">
 <meta property="og:image" content="https://moundmetrics.app/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <style>
@@ -79,7 +79,7 @@ body{
 .eyebrow{ font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
 h1{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:clamp(28px,5vw,42px); text-transform:uppercase; margin-bottom:6px; position:relative; padding-bottom:18px; }
 h1::after{ content:''; position:absolute; left:0; bottom:0; width:80px; height:3px; background:var(--seam); }
-.updated{ color:var(--muted); font-size:13px; margin:14px 0 28px; }
+.lede{ font-size:16px; color:var(--muted); margin:14px 0 28px; }
 .callout{
   background:var(--flag-soft); border:1px solid #EBD2A6; border-left:3px solid var(--flag); border-right:3px solid var(--flag);
   border-radius:16px; padding:16px 18px; margin:20px 0 28px; font-size:14.5px;
@@ -107,6 +107,16 @@ a:hover{ color:var(--navy-deep); }
 }
 .back:hover{ border-color:var(--navy); color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep)); }
 
+.cta-tool{
+  display:inline-block; margin:8px 0 6px; font-family:'Barlow Condensed',sans-serif;
+  font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:14px;
+  text-decoration:none; color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep));
+  border:1.5px solid var(--navy-deep); border-radius:99px; padding:11px 22px;
+  box-shadow:0 8px 24px rgba(21,44,76,.24);
+  transition:filter .15s ease, box-shadow .15s ease;
+}
+.cta-tool:hover{ color:#fff; filter:brightness(1.08); box-shadow:0 10px 28px rgba(21,44,76,.32); }
+
 .next-read{
   display:block; margin:28px 0 4px; padding:18px 20px; border-radius:16px; text-decoration:none;
   background:linear-gradient(165deg, rgba(255,255,255,.72), rgba(255,255,255,.44));
@@ -120,16 +130,6 @@ a:hover{ color:var(--navy-deep); }
 .next-read .nr-eyebrow{ font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); }
 .next-read .nr-title{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:.02em; color:var(--ink); margin-top:3px; }
 .next-read .nr-teaser{ color:var(--muted); font-size:14px; margin-top:4px; }
-
-.cta-tool{
-  display:inline-block; margin:8px 0 6px; font-family:'Barlow Condensed',sans-serif;
-  font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:14px;
-  text-decoration:none; color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep));
-  border:1.5px solid var(--navy-deep); border-radius:99px; padding:11px 22px;
-  box-shadow:0 8px 24px rgba(21,44,76,.24);
-  transition:filter .15s ease, box-shadow .15s ease;
-}
-.cta-tool:hover{ color:#fff; filter:brightness(1.08); box-shadow:0 10px 28px rgba(21,44,76,.32); }
 
 .mm-consent-banner{
   position:fixed; left:0; right:0; bottom:0; z-index:9999;
@@ -185,70 +185,50 @@ a:hover{ color:var(--navy-deep); }
 
 <div class="wrap">
   <div class="eyebrow">Guide</div>
-  <h1>How to Analyze a Pitcher's Delivery from Video (Without Guessing)</h1>
+  <h1>The Collapsing Front Knee: A Quiet Power Leak Most People Miss</h1>
 
-  <p>You've got a video of a pitching delivery on your phone. Maybe it's your kid, maybe it's a player you're coaching. You've watched it ten times and you have a feeling something's a little off — but "a feeling" isn't much to work with.</p>
-  <p>Here's how to actually break the delivery down frame by frame, right in your browser, in a couple minutes. No account, no upload to some server, no app to install.</p>
+  <p class="lede">Some mechanics flaws are loud — an arm that's obviously late, a foot that lands way off line. A collapsing front knee isn't like that. It looks fine at full speed. It often feels fine to the pitcher. But it's one of the more common ways a pitcher loses velocity without anyone being able to say exactly why.</p>
 
-  <h2>What you actually need</h2>
-  <ul>
-    <li>A side-view video of the full delivery (.mp4 or .mov)</li>
-    <li>A phone, tablet, or laptop</li>
-    <li>A few minutes</li>
-  </ul>
-  <p>That's genuinely it.</p>
+  <h2>What "collapsing" actually means</h2>
+  <p>Picture the front leg the instant it plants. There's a certain amount of bend in the knee at that moment — that part's normal and varies pitcher to pitcher. What matters is what happens after.</p>
+  <p>In an efficient delivery, that knee bend should hold or start straightening as the pitcher rotates through release. If instead the knee keeps bending — the angle getting smaller, the leg sinking further down — that's a collapsing front knee. The front leg is supposed to act like a brace, not a shock absorber.</p>
 
-  <h2>Step 1: Get the camera angle right</h2>
-  <p>This is the part people rush, and it's the part that matters most. Garbage angle in, garbage analysis out.</p>
-  <ul>
-    <li><strong>Shoot from the side</strong>, lined up along the first or third base line — not from behind the mound, not from behind the plate.</li>
-    <li><strong>Keep the whole body in frame</strong>, start to finish, including where the front foot lands. If a joint disappears off-screen, the tracking can't see it either.</li>
-    <li><strong>Use slow-mo if your phone has it.</strong> Most phones shoot 120 or 240fps now, and it makes a noticeable difference for catching the exact instant of foot plant or release.</li>
-    <li><strong>Brace the camera.</strong> Fence, tripod, railing, whatever — just don't hand-hold it. Shaky footage makes tracking sloppier.</li>
-  </ul>
+  <h2>Why it costs velocity, not just looks</h2>
+  <p>Here's the mechanism, and it's genuinely just physics: when a pitcher strides forward, they've built up a lot of momentum moving toward home plate. The front leg's job at landing is to plant, stop that forward momentum, and redirect it — up and around, into rotation. That redirection is a big part of where pitch velocity actually comes from.</p>
+  <p>A useful way to picture it: think about slamming the front brake on a bike going full speed. The front wheel stops dead, and all that forward momentum has to go somewhere — it launches the bike up and over the handlebars. A braced front leg does something similar on purpose, in a controlled way, sending the body's momentum up and around into the throw.</p>
+  <p>A collapsing knee breaks that. Instead of stopping and redirecting the momentum, the leg keeps absorbing it — sinking, cushioning, essentially acting like a shock absorber instead of a brace. Multiple biomechanics researchers have measured this directly: pitchers who generate more force through the front leg at landing tend to throw harder, and studies comparing high-velocity to low-velocity pitchers have repeatedly found more knee flexion after landing in the slower group. The energy doesn't disappear — it just doesn't make it to the ball.</p>
 
-  <h2>Step 2: Drop in the video</h2>
-  <p>Upload the clip, plug in the pitcher's height and throwing hand (used to scale everything correctly), and pick an age range if you want — mechanics look pretty different on a 10-year-old versus an 18-year-old, so this helps put things in context.</p>
-  <p>Worth knowing: the video never leaves your device. It's all processed locally in the browser, so you're not uploading footage of a kid to some random server somewhere.</p>
+  <h2>It's a leak, not a break</h2>
+  <p>This is worth saying clearly: a collapsing knee isn't dangerous the way some other flaws can be, and it's not something that typically shows up as pain. It's inefficiency, not injury risk. A pitcher with a collapsing front knee can still pitch a full, healthy career — they're just leaving velocity on the table that better leg mechanics would convert into the throw.</p>
+  <p>That's actually good news. It means this is a pure performance fix, not a "get to a specialist immediately" flag.</p>
 
-  <h2>Step 3: Hit Auto-detect</h2>
-  <p>Tap it, and the pose-tracking picks out four moments in the delivery on its own:</p>
+  <h2>How to spot it on video</h2>
+  <p>This one's harder to catch than a lot of mechanical flaws because it happens gradually, over a fraction of a second, and the eye tends to follow the arm and the ball rather than the back leg.</p>
   <ol>
-    <li><strong>Reference stance</strong> — a calm, upright frame before leg lift starts. This sets the scale for everything else.</li>
-    <li><strong>Peak leg lift</strong> — front knee at its highest point.</li>
-    <li><strong>Foot plant</strong> — the frame the front foot touches down.</li>
-    <li><strong>Release</strong> — the exact frame the ball leaves the hand.</li>
+    <li>Get a clean side-view video — same setup as any mechanics check: full body in frame, camera steady, slow-motion helps a lot here specifically.</li>
+    <li>Find the frame at foot plant, then keep watching frame by frame past that point.</li>
+    <li>Watch the front knee's angle specifically. Does it hold steady or straighten as the body rotates through? Or does it keep bending, sinking further down after the foot's already planted?</li>
   </ol>
+  <p>If the knee angle is still shrinking well after foot plant, rather than holding or opening back up, that's the pattern.</p>
+  <p><a class="cta-tool" href="../index.html">Upload your own video and check this frame →</a></p>
 
-  <h2>Step 4: Actually look at what it picked</h2>
-  <p>Don't skip this. The tracking is good, but it's reading one camera angle, and it can occasionally lose track of a joint — the throwing arm at release is the usual suspect, since it can get partially hidden behind the body. Scroll through the marked frames and eyeball whether the dots are actually sitting where the joints are. If one looks wrong, re-run Auto-detect or nudge it manually.</p>
-
-  <h2>Step 5: Read the report — with the right expectations</h2>
-  <p>Once those four moments are locked in, you get a report comparing the joint angles and ratios to general ranges pulled from pitching biomechanics research. Tap any number and it jumps you right to that spot in the video.</p>
-  <p>A few honest caveats here, because they matter:</p>
+  <h2>What this looks like in Mound Metrics AI</h2>
+  <p>Foot plant is already one of the four moments the app locks onto with Auto-detect, which makes it a natural anchor point for this check — mark that frame, then step forward through the next several frames and watch what the front knee does. You're not looking for a single number here so much as a trend across a handful of frames right after landing.</p>
+  <p>A couple of honest caveats:</p>
   <ul>
-    <li>It's a 2D read from one angle, not a 3D motion-capture lab. Think of it as a conversation starter, not a verdict.</li>
-    <li>Falling outside a "typical" range doesn't mean something's wrong, and falling inside one doesn't mean everything's fine. Bodies, mobility, and pitch types all vary.</li>
-    <li>If you're worried about injury risk — elbow or shoulder stress especially — this is a good first look, but a pitching coach, athletic trainer, or sports medicine pro can give you a far more precise read than any video ever will.</li>
+    <li>This is about a trend across frames, not one frame. A single snapshot won't show you collapse — you need to compare the knee angle at foot plant to a few frames later.</li>
+    <li>Every pitcher's baseline bend is a little different. The question isn't how bent the knee is at landing — it's whether that bend gets worse afterward.</li>
+    <li>If it's there, it's usually a strength and mechanics fix. This tends to respond well to leg strength work and coaching on the "block" — a pitching coach or strength coach is the right next step, not a medical one.</li>
   </ul>
 
-  <h2>Step 6: Save it and check back later</h2>
-  <p>You can save the analysis under the athlete's name, and everything — video, marked points, all of it — stays right there in your browser for next time. No re-marking from scratch. That makes it easy to film again in a few weeks and actually see whether specific numbers are moving, instead of just guessing whether things look "better."</p>
-
-  <h2>The honest bottom line</h2>
-  <p>The report is only as good as the video you feed it. A steady, well-lit, slow-motion side shot will give you a report you can trust. A shaky clip from across the field, less so. If a report ever looks off, check the footage before you second-guess the pitcher.</p>
-  <p class="muted">Mound Metrics AI is a free tool for frame-by-frame pitching delivery analysis, and it runs entirely in your browser — nothing gets uploaded. <a href="https://moundmetrics.app/">Try it here</a>, and take a look at the <a href="https://moundmetrics.app/disclaimer.html">medical disclaimer</a> before you dig in.</p>
+  <h2>The takeaway</h2>
+  <p>A collapsing front knee is easy to miss because nothing about it looks alarming — it just quietly costs velocity. Once you know to watch the front knee for a few frames past landing instead of just at the moment of contact, it becomes one of the more visible mechanical patterns on video, even though it's nearly invisible at full speed.</p>
+  <p class="muted">Mound Metrics AI is a free, browser-based tool for frame-by-frame pitching delivery analysis. Video is processed entirely on your device and never uploaded. <a href="https://moundmetrics.app/">Try it here</a>, and take a look at the <a href="https://moundmetrics.app/disclaimer.html">medical disclaimer</a> before you dig in.</p>
 
   <a class="next-read" href="late-arm-timing.html">
-    <span class="nr-eyebrow">Once you've got a report</span>
-    <span class="nr-title">One specific thing worth checking: late arm timing at foot plant</span>
-    <span class="nr-teaser">Why "late arm" is one of the most common flaws coaches flag — and how to spot it on the exact frame the app already marks for you.</span>
-  </a>
-
-  <a class="next-read" href="collapsing-front-knee.html">
-    <span class="nr-eyebrow">Another one worth checking</span>
-    <span class="nr-title">A collapsing front knee after foot plant</span>
-    <span class="nr-teaser">A quiet power leak that's nearly invisible at full speed — why a front knee that keeps bending after landing costs velocity, and how to catch it frame by frame.</span>
+    <span class="nr-eyebrow">Another mechanics deep-dive</span>
+    <span class="nr-title">"Late arm" timing at foot plant</span>
+    <span class="nr-teaser">The other common flaw that shows up at foot plant — what "late arm" means, why it matters, and how to spot it on the frame the app marks for you.</span>
   </a>
 
   <a class="back" href="../index.html">← Back to the app</a>

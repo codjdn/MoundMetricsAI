@@ -1898,7 +1898,7 @@ body::after{
         <ol class="intro-steps">
           <li><span class="n" data-n="1">1</span><div><div class="s-title">Reference stance</div><div class="s-body">A still, upright frame before leg lift — sets the size scale.</div></div></li>
           <li><span class="n" data-n="2">2</span><div><div class="s-title">Peak leg lift</div><div class="s-body">Front knee at its highest point.</div></div></li>
-          <li><span class="n" data-n="3">3</span><div><div class="s-title">Foot plant</div><div class="s-body">The frame the front foot first touches down. <a class="s-guide-link" href="guides/late-arm-timing.html">Curious what to look for here? Read about late arm timing →</a></div></div></li>
+          <li><span class="n" data-n="3">3</span><div><div class="s-title">Foot plant</div><div class="s-body">The frame the front foot first touches down. <a class="s-guide-link" href="guides/late-arm-timing.html">Curious what to look for here? Read about late arm timing</a> and the <a class="s-guide-link" href="guides/collapsing-front-knee.html">collapsing front knee →</a></div></div></li>
           <li><span class="n" data-n="4">4</span><div><div class="s-title">Release</div><div class="s-body">The frame the ball leaves the hand.</div></div></li>
         </ol>
         <div class="intro-actions">
@@ -4822,6 +4822,8 @@ body::after{
       } else {
         note = 'The front leg extends through the delivery (about ' + m.kneeChange.toFixed(1) + '° of straightening), consistent with an efficient blocking pattern that helps transfer energy up the chain.';
       }
+      // This metric is where a "collapsing front knee" shows up — link the deeper guide.
+      note += ' <a class="metric-guide-link" href="guides/collapsing-front-knee.html">What does this mean? →</a>';
       cards.push(card('How much front knee straightens', m.kneeChange, '°', 1, [-20,30], goodRange, good, note));
     });
 
