@@ -4285,19 +4285,24 @@ body::after{
     // contain a warm-up or a second motion whose knee-lift or follow-through
     // out-scores the actual pitch, so leg lift would latch onto the wrong event
     // and foot plant + release cascaded off it. Instead:
-    //   release  = the throwing arm's STRAIGHTEST point at the whip — the wrist
-    //              whip's peak forward ACCELERATION fixes the region, and peak
-    //              throwing-elbow EXTENSION (ceilinged at peak wrist SPEED, where
-    //              the ball is gone) pins the exact frame the ball leaves;
+    //   release  = the first moment the wrist is OUT IN FRONT of the throwing
+    //              shoulder with the arm near its straightest — the wrist
+    //              whip's acceleration and speed peaks bracket the region, and
+    //              the front-of-shoulder gate separates true release from peak
+    //              LAYBACK, whose foreshortened arm projects deceptively
+    //              straight in a 2D side view;
     //   leg lift = the highest knee-above-hip BEFORE release;
     //   foot plant = the last "loaded" frame before the arm fires;
     //   reference = the stillest frame BEFORE leg lift.
 
-    // --- RELEASE: throwing-wrist whip. ------------------------------------
-    // The wrist's frame-to-frame speed peaks just AFTER the ball is gone, so
-    // anchoring on peak speed lands release a touch late. The ball actually
-    // leaves at peak forward acceleration — the steepest jump in wrist speed on
-    // the way UP to that peak — which is a frame or two earlier.
+    // --- RELEASE region: throwing-wrist whip. ------------------------------
+    // The wrist's frame-to-frame speed peaks right around the instant the ball
+    // leaves. The steepest jump in speed on the way UP to that peak sits
+    // earlier, on the LAYBACK side of the whip — the two together bracket the
+    // release, and the fine pass below pins the exact frame inside that
+    // bracket. (The acceleration peak also serves as the "before release"
+    // bound for the leg-lift and foot-plant searches, where erring early is
+    // safe.)
     // Wrist speed measured as NET displacement across two steps: a tracker
     // glitch teleports the wrist out and back — two big steps that cancel —
     // while a real whip is sustained, directional travel that adds up. Plain
@@ -4481,20 +4486,31 @@ body::after{
       return arr;
     }
     try {
-      // RELEASE — the ball leaves as the throwing arm reaches its STRAIGHTEST.
-      // Two signals, each doing what it's best at:
-      //   • the wrist WHIP fixes the release REGION (robust against warm-up
-      //     throws and second motions elsewhere in the clip), and
-      //   • throwing-elbow EXTENSION pins the exact FRAME — the arm's straightest
-      //     point, which is a cleaner, less blur-prone signal than the exact
-      //     wrist position at the whip.
-      // The arm keeps straightening for a beat AFTER the ball is gone, so a bare
-      // "straightest frame" lands late. To keep it at true release, the elbow
-      // search is ceilinged at the wrist's peak SPEED — the instant the ball is
-      // out — and floored at the whip's ACCELERATION peak, so it can't drift into
-      // the follow-through or back before the throw fires.
+      // RELEASE — the moment the ball leaves the hand. The whip alone can't
+      // pin it: wrist speed peaks AT/just after release, but its ACCELERATION
+      // peaks between layback and release — and the 2D elbow angle is a trap
+      // on side views, because at peak LAYBACK the forearm points away from
+      // the camera and foreshortens, so shoulder–elbow–wrist projects nearly
+      // straight. Anchoring on "straightest elbow after the acceleration
+      // peak" therefore kept landing on peak layback. What separates the two
+      // unambiguously in 2D is the wrist's position along the throw: at
+      // layback it is BEHIND the throwing shoulder, at release it is out in
+      // FRONT. So:
+      //   • the whip's acceleration→speed-peak span fixes the region,
+      //   • only frames with the wrist in front of the shoulder qualify,
+      //   • among those, the earliest frame within a few degrees of the
+      //     straightest elbow wins (the arm keeps straightening into the
+      //     follow-through, so a plain max lands late), and
+      //   • when the arm is unreadable through the window, fall back to the
+      //     wrist's SPEED peak — the ball-gone instant — never the
+      //     acceleration peak, which sits on the layback side of the whip.
       autoDetectLabel.textContent = 'Refining…';
-      const fr = await fineSamples(samples[releaseIdx].t, step * 1.3, RESCUE.release);
+      // Window spans the whole whip: from the coarse acceleration peak through
+      // the coarse speed peak plus margin on both sides, so true release can't
+      // fall off the end when the two coarse anchors straddle it.
+      const spdIdx = Math.max(releaseIdx, spdPeakIdx);
+      const relT0 = samples[releaseIdx].t, relT1 = samples[spdIdx].t;
+      const fr = await fineSamples((relT0 + relT1) / 2, (relT1 - relT0) / 2 + step * 1.3, RESCUE.release);
       // Same glitch-proof, label-agnostic whip signal as the coarse pass.
       const frSp = whipSpd(fr);
       let fpk = -1, fpv = -Infinity;
@@ -4507,36 +4523,52 @@ body::after{
           if(a != null && b != null && (a - b) > bestA && fr[k].lm){ bestA = a - b; relK = k; }
         }
         if(relK < 0) relK = fpk;
-        // Exact frame: straightest throwing elbow between the acceleration peak
-        // and one frame past the speed peak (ball gone). Smoothed so a single
-        // noisy angle can't decide it; falls back to the acceleration pick if the
-        // arm is occluded through the window.
         const elb = smooth3(fr.map(f => elbowExt(f.lm)));
         const hi = Math.min(fr.length - 1, fpk + 1);
-        // The arm also reads dead straight deep in the follow-through, and a
-        // noisy frame can read straight while the arm is still coming through
-        // behind the body. A real release frame has the wrist OUT IN FRONT of
-        // the throwing shoulder, toward home plate — gate extension candidates
-        // on that (direction from the stride, computed above), and fall back
-        // to the ungated pick when the direction is unknown or the gate
-        // rejects every candidate (e.g. shoulder occluded through the window).
+        // Throw direction: the stride usually supplies it; when the ankles
+        // were too blurred for that, the whip itself travels toward home
+        // plate — take the throwing wrist's net travel across the window.
+        let dirF = throwDir;
+        if(!dirF){
+          let p0 = null, p1 = null;
+          for(let k = Math.max(0, relK - 1); k <= hi; k++){
+            const w = visBlur(fr[k].lm, THROW.wr, THROW.el, LIMB_REACH);
+            if(w){ if(!p0) p0 = w; p1 = w; }
+          }
+          if(p0 && p1 && Math.abs(p1.x - p0.x) * AR > 0.03) dirF = Math.sign(p1.x - p0.x);
+        }
+        // A frame can only be release if the wrist is in front of the
+        // throwing shoulder, toward the plate. An unknown direction or an
+        // unreadable wrist/shoulder never qualifies — every fallback below is
+        // later-biased, which beats silently accepting layback.
         const wristFront = (lm) => {
-          if(!throwDir) return true;
+          if(!dirF) return false;
           const s = vis(lm, THROW.sh);
           const w = visBlur(lm, THROW.wr, THROW.el, LIMB_REACH);
           if(!s || !w) return false;
-          return (w.x - s.x) * throwDir > -0.01;
+          return (w.x - s.x) * dirF > 0;
         };
+        const front = fr.map(f => f.lm ? wristFront(f.lm) : false);
+        // Earliest qualifying frame within 4° of the straightest qualifying
+        // elbow: the straightest FRAME is already follow-through; release
+        // sits at the start of that plateau.
         let bestE = -Infinity, relE = -1;
         for(let k = relK; k <= hi; k++){
-          if(elb[k] != null && elb[k] > bestE && fr[k].lm && wristFront(fr[k].lm)){ bestE = elb[k]; relE = k; }
+          if(front[k] && elb[k] != null && elb[k] > bestE) bestE = elb[k];
         }
-        if(relE < 0){
+        if(bestE > -Infinity){
           for(let k = relK; k <= hi; k++){
-            if(elb[k] != null && elb[k] > bestE && fr[k].lm){ bestE = elb[k]; relE = k; }
+            if(front[k] && elb[k] != null && elb[k] >= bestE - 4){ relE = k; break; }
           }
         }
-        refined.release = fr[(relE >= 0) ? relE : relK];
+        // No readable elbow among front-of-shoulder frames → the first frame
+        // the wrist crosses in front (the ball just left), else the speed
+        // peak (the ball is certainly gone there). Never the acceleration
+        // peak — that frame is the layback side of the whip.
+        if(relE < 0){
+          for(let k = relK; k <= hi; k++){ if(front[k]){ relE = k; break; } }
+        }
+        refined.release = fr[(relE >= 0) ? relE : fpk];
       }
 
       // FOOT PLANT — the stride ankle stops moving. Scan a window at fine
