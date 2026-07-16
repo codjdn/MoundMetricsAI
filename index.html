@@ -31,22 +31,33 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Mound Metrics AI — Delivery Analysis</title>
-<meta name="description" content="Upload a side-view pitching video and get frame-by-frame delivery mechanics feedback. Runs entirely in your browser — video is never uploaded.">
+<title>Mound Metrics AI — Free Pitching Delivery Analysis in Your Browser</title>
+<meta name="description" content="Free, browser-based pitching delivery analysis. Get frame-by-frame mechanics feedback from one side-view video — the pose AI runs on your device, so nothing is uploaded. No account required.">
+<link rel="canonical" href="https://moundmetrics.app/">
+<meta name="theme-color" content="#1D3A63">
 <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon-96.png">
 <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png">
 <link rel="shortcut icon" href="assets/favicon-96.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
-<!-- Social sharing card -->
+<!-- Social sharing card (Open Graph + Twitter) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Mound Metrics AI">
-<meta property="og:title" content="Mound Metrics AI — Delivery Analysis">
-<meta property="og:description" content="Upload a side-view pitching video and get frame-by-frame delivery mechanics feedback. Runs entirely in your browser — video is never uploaded.">
+<meta property="og:title" content="Mound Metrics AI — Free Pitching Delivery Analysis in Your Browser">
+<meta property="og:description" content="Free, in-browser pitching delivery analysis. Frame-by-frame mechanics feedback from one side-view video — the pose AI runs on your device, so nothing is uploaded. No account required.">
 <meta property="og:url" content="https://moundmetrics.app/">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://moundmetrics.app/assets/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Mound Metrics AI — free, in-browser frame-by-frame pitching delivery analysis">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mound Metrics AI — Free Pitching Delivery Analysis in Your Browser">
+<meta name="twitter:description" content="Free, in-browser pitching delivery analysis. Frame-by-frame mechanics feedback from one side-view video — nothing is uploaded. No account required.">
+<meta name="twitter:image" content="https://moundmetrics.app/assets/og-image.png">
+<meta name="twitter:image:alt" content="Mound Metrics AI — free, in-browser frame-by-frame pitching delivery analysis">
 
 <!-- Structured data: tells Google the brand name + logo so it can show the
      logo next to the site name in search results -->
@@ -72,6 +83,34 @@
       "@id": "https://moundmetrics.app/#website",
       "name": "Mound Metrics AI",
       "url": "https://moundmetrics.app/",
+      "publisher": { "@id": "https://moundmetrics.app/#organization" }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://moundmetrics.app/#app",
+      "name": "Mound Metrics AI",
+      "url": "https://moundmetrics.app/",
+      "applicationCategory": "SportsApplication",
+      "applicationSubCategory": "Pitching mechanics analysis",
+      "operatingSystem": "Any (modern web browser)",
+      "browserRequirements": "Requires a modern browser with JavaScript enabled",
+      "description": "Free, browser-based tool for frame-by-frame analysis of a pitcher's delivery. Upload one side-view video and the pose AI tracks the pitcher's joints on your device — the video is never uploaded — then compares key delivery angles and ratios to general ranges from pitching biomechanics research.",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Client-side pose detection — video never leaves the device",
+        "Frame-by-frame delivery breakdown (reference stance, leg lift, foot plant, release)",
+        "Delivery angles and ratios compared to general biomechanics ranges",
+        "Saved analyses and progress tracking, stored in the browser",
+        "PDF delivery report export",
+        "No account required"
+      ],
+      "image": "https://moundmetrics.app/assets/og-image.png",
+      "screenshot": "https://moundmetrics.app/assets/og-image.png",
       "publisher": { "@id": "https://moundmetrics.app/#organization" }
     }
   ]
