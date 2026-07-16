@@ -400,6 +400,26 @@ body.mode-workspace .hdr-guides{ display:none; }
 .setup-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:28px; }
 @media (max-width:760px){ .setup-grid{ grid-template-columns:1fr; } }
 
+.upload-col{ display:flex; flex-direction:column; gap:12px; }
+/* Let the drop zone fill the column height so the trust strip sits snug beneath
+   it rather than leaving a gap under a short zone next to the taller fields. */
+.upload-col .upload-zone{ flex:1 1 auto; }
+/* Trust strip: privacy + disclaimer surfaced directly under the drop zone */
+.trust-strip{ display:flex; flex-direction:column; gap:8px; }
+.trust-item{
+  display:flex; gap:9px; align-items:flex-start; margin:0;
+  font-size:13px; line-height:1.45; color:var(--muted);
+  background:var(--well-grad); border:1px solid var(--line);
+  border-radius:var(--radius-md); padding:10px 12px;
+}
+.trust-item svg{ flex:none; width:16px; height:16px; margin-top:1px; }
+.trust-item strong{ font-weight:600; }
+.trust-privacy{ color:#3d5c4a; }
+.trust-privacy svg, .trust-privacy strong{ color:var(--good); }
+.trust-disclaimer svg{ color:var(--flag); }
+.trust-disclaimer a{ color:var(--navy); font-weight:600; text-decoration:underline; }
+.trust-disclaimer a:hover{ color:var(--navy-deep); }
+
 .upload-zone{
   border:2px dashed var(--line); border-radius:var(--radius-lg); background:var(--well-grad);
   padding:36px 20px; text-align:center; position:relative; min-height:200px;
@@ -1861,19 +1881,34 @@ body::after{
   <!-- ============ SETUP ============ -->
   <section class="panel" id="setupPanel">
     <div class="setup-grid">
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" id="videoInput" accept="video/*">
-        <svg class="upload-ball" viewBox="0 0 64 64" aria-hidden="true">
-          <circle class="core" cx="32" cy="32" r="29"/>
-          <path class="stitch" d="M13 9 C 27 23, 27 41, 13 55"/>
-          <path class="stitch" d="M51 9 C 37 23, 37 41, 51 55"/>
-        </svg>
-        <div class="upload-label">
-          <strong>Drop a pitching video here</strong>
-          <span>or tap to choose a file (.mp4, .mov)</span>
+      <div class="upload-col">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="videoInput" accept="video/*">
+          <svg class="upload-ball" viewBox="0 0 64 64" aria-hidden="true">
+            <circle class="core" cx="32" cy="32" r="29"/>
+            <path class="stitch" d="M13 9 C 27 23, 27 41, 13 55"/>
+            <path class="stitch" d="M51 9 C 37 23, 37 41, 51 55"/>
+          </svg>
+          <div class="upload-label">
+            <strong>Drop a pitching video here</strong>
+            <span>or tap to choose a file (.mp4, .mov)</span>
+          </div>
+          <div class="upload-filename" id="uploadFilename"></div>
+          <div class="frame-status hidden" id="frameStatus"><span class="frame-spin" aria-hidden="true"></span>Framing your video…</div>
         </div>
-        <div class="upload-filename" id="uploadFilename"></div>
-        <div class="frame-status hidden" id="frameStatus"><span class="frame-spin" aria-hidden="true"></span>Framing your video…</div>
+
+        <!-- Trust signals: privacy + medical disclaimer, visible right at the
+             upload action (not just in metadata / the footer) -->
+        <div class="trust-strip">
+          <p class="trust-item trust-privacy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+            <span><strong>Private by design.</strong> Your video never leaves this device — the pose AI runs in your browser, so nothing is uploaded.</span>
+          </p>
+          <p class="trust-item trust-disclaimer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>
+            <span>Estimates from video, not a medical evaluation. <a href="disclaimer.html">Read the 1-minute medical disclaimer</a> before you start.</span>
+          </p>
+        </div>
       </div>
 
       <div class="setup-fields">
