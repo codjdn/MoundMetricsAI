@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) — only loads after the visitor accepts analytics in the consent banner below -->
+  <script>
+    function mmLoadAnalytics(){
+      if (window.gtag) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-X22XJ96MXH';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-X22XJ96MXH', {
+        'anonymize_ip': true,
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false
+      });
+    }
+    try{ if (localStorage.getItem('mm-analytics-consent') === 'accepted') mmLoadAnalytics(); }catch(_){}
+  </script>
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>How to Analyze a Pitcher's Delivery from Video | Mound Metrics AI</title>
+<meta name="description" content="A step-by-step guide to filming and analyzing a pitching delivery with Mound Metrics AI — frame-by-frame mechanics feedback, processed entirely in your browser.">
+<link rel="canonical" href="https://moundmetrics.app/guides/getting-started.html">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Mound Metrics AI">
+<meta property="og:title" content="How to Analyze a Pitcher's Delivery from Video | Mound Metrics AI">
+<meta property="og:description" content="A step-by-step guide to filming and analyzing a pitching delivery with Mound Metrics AI — frame-by-frame mechanics feedback, processed entirely in your browser.">
+<meta property="og:url" content="https://moundmetrics.app/guides/getting-started.html">
+<meta property="og:image" content="https://moundmetrics.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:400; font-display:swap; src:url('../assets/fonts/barlow-400.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:500; font-display:swap; src:url('../assets/fonts/barlow-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:600; font-display:swap; src:url('../assets/fonts/barlow-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow'; font-style:normal; font-weight:700; font-display:swap; src:url('../assets/fonts/barlow-700.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('../assets/fonts/barlow-condensed-500.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:600; font-display:swap; src:url('../assets/fonts/barlow-condensed-600.woff2') format('woff2'); }
+@font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:700; font-display:swap; src:url('../assets/fonts/barlow-condensed-700.woff2') format('woff2'); }
+*{ box-sizing:border-box; margin:0; padding:0; }
+:root{
+  --paper:#EDF0F4; --card:#FFFFFF; --ink:#14213A; --muted:#5C6B84;
+  --line:#D7DDE6; --navy:#1D3A63; --navy-deep:#152C4C; --red:#C8102E;
+  --flag:#A85B00; --flag-soft:rgba(251,239,221,.78);
+  --seam:repeating-linear-gradient(115deg, var(--red) 0 7px, transparent 7px 13px);
+}
+body{
+  font-family:'Barlow',system-ui,sans-serif; color:var(--ink); line-height:1.6;
+  background:
+    radial-gradient(1100px 760px at 12% -8%, rgba(29,58,99,.24), transparent 58%),
+    radial-gradient(900px 640px at 108% 6%, rgba(200,16,46,.13), transparent 55%),
+    radial-gradient(760px 900px at 46% 118%, rgba(74,222,128,.16), transparent 60%),
+    linear-gradient(165deg, #EEF1F6 0%, #E7EBF2 45%, #DEE4EE 100%);
+  background-attachment:fixed;
+}
+.app-header{
+  height:52px; display:flex; align-items:center; padding:0 18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.66));
+  backdrop-filter:blur(10px) saturate(160%);
+  -webkit-backdrop-filter:blur(10px) saturate(160%);
+  border-bottom:1px solid var(--line);
+}
+.app-header .hdr-brand{ text-decoration:none; color:var(--ink); font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.03em; text-transform:uppercase; font-size:19px; display:flex; align-items:center; gap:9px; }
+.app-header .hdr-logo{ width:28px; height:28px; border-radius:7px; box-shadow:0 1px 4px rgba(20,33,58,.18); }
+.hdr-nav{ margin-left:auto; display:flex; align-items:center; gap:4px; }
+.hdr-nav a{ text-decoration:none; color:var(--navy); font-family:'Barlow Condensed',sans-serif; font-weight:600; letter-spacing:.05em; text-transform:uppercase; font-size:13px; padding:7px 12px; border-radius:99px; transition:background .15s ease, color .15s ease; }
+.hdr-nav a:hover{ background:rgba(29,58,99,.1); color:var(--navy-deep); }
+.hdr-nav a.active{ color:var(--red); }
+.wrap{ max-width:760px; margin:0 auto; padding:36px 20px 72px; }
+.eyebrow{ font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
+h1{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:clamp(28px,5vw,42px); text-transform:uppercase; margin-bottom:6px; position:relative; padding-bottom:18px; }
+h1::after{ content:''; position:absolute; left:0; bottom:0; width:80px; height:3px; background:var(--seam); }
+.updated{ color:var(--muted); font-size:13px; margin:14px 0 28px; }
+.callout{
+  background:var(--flag-soft); border:1px solid #EBD2A6; border-left:3px solid var(--flag); border-right:3px solid var(--flag);
+  border-radius:16px; padding:16px 18px; margin:20px 0 28px; font-size:14.5px;
+  backdrop-filter:blur(10px) saturate(160%);
+  -webkit-backdrop-filter:blur(10px) saturate(160%);
+  box-shadow:0 8px 30px rgba(20,33,58,.08), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.callout strong{ color:var(--flag); display:block; margin-bottom:4px; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:.04em; }
+h2{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:19px; text-transform:uppercase; letter-spacing:.02em; margin:30px 0 10px; color:var(--ink); }
+p{ margin-bottom:14px; font-size:15px; color:var(--ink); }
+p.muted{ color:var(--muted); font-size:14px; }
+ul, ol{ margin:0 0 14px 20px; }
+li{ margin-bottom:6px; font-size:15px; }
+a{ color:var(--navy); }
+a:hover{ color:var(--navy-deep); }
+.back{
+  display:inline-block; margin-top:36px; font-family:'Barlow Condensed',sans-serif;
+  font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:13px;
+  text-decoration:none; color:var(--navy);
+  background:linear-gradient(165deg, rgba(255,255,255,.72), rgba(255,255,255,.44));
+  border:1.5px solid var(--line); border-radius:99px; padding:10px 18px;
+  backdrop-filter:blur(10px) saturate(160%);
+  -webkit-backdrop-filter:blur(10px) saturate(160%);
+  transition:border-color .15s ease, color .15s ease, background .15s ease;
+}
+.back:hover{ border-color:var(--navy); color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep)); }
+
+.next-read{
+  display:block; margin:28px 0 4px; padding:18px 20px; border-radius:16px; text-decoration:none;
+  background:linear-gradient(165deg, rgba(255,255,255,.72), rgba(255,255,255,.44));
+  border:1.5px solid var(--line);
+  backdrop-filter:blur(10px) saturate(160%);
+  -webkit-backdrop-filter:blur(10px) saturate(160%);
+  box-shadow:0 8px 30px rgba(20,33,58,.06);
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.next-read:hover{ border-color:var(--navy); box-shadow:0 10px 34px rgba(20,33,58,.12); }
+.next-read .nr-eyebrow{ font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); }
+.next-read .nr-title{ font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:.02em; color:var(--ink); margin-top:3px; }
+.next-read .nr-teaser{ color:var(--muted); font-size:14px; margin-top:4px; }
+
+.cta-tool{
+  display:inline-block; margin:8px 0 6px; font-family:'Barlow Condensed',sans-serif;
+  font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:14px;
+  text-decoration:none; color:#fff; background:linear-gradient(135deg, var(--navy), var(--navy-deep));
+  border:1.5px solid var(--navy-deep); border-radius:99px; padding:11px 22px;
+  box-shadow:0 8px 24px rgba(21,44,76,.24);
+  transition:filter .15s ease, box-shadow .15s ease;
+}
+.cta-tool:hover{ color:#fff; filter:brightness(1.08); box-shadow:0 10px 28px rgba(21,44,76,.32); }
+
+.mm-consent-banner{
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
+  background:linear-gradient(165deg, rgba(21,44,76,.96), rgba(20,33,58,.96));
+  backdrop-filter:blur(10px); border-top:2px solid var(--red);
+  padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:14px; color:#fff; font-size:14px; text-align:center;
+}
+.mm-consent-banner p{ margin:0; max-width:640px; }
+.mm-consent-banner button{
+  border-radius:20px; padding:8px 18px; font-weight:600; font-size:13px; cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.7); background:transparent; color:#fff;
+}
+.mm-consent-banner button#mm-consent-accept{ background:var(--navy); border-color:var(--navy); }
+.mm-consent-banner[hidden]{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="mm-consent-banner" class="mm-consent-banner" hidden>
+  <p>We use analytics to count page visits. Your video and analysis data never leave your device.</p>
+  <div>
+    <button id="mm-consent-accept" type="button">Accept analytics</button>
+    <button id="mm-consent-decline" type="button">Decline</button>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY = 'mm-analytics-consent';
+  var banner = document.getElementById('mm-consent-banner');
+  try{
+    if (!localStorage.getItem(KEY)) banner.hidden = false;
+  }catch(_){}
+  document.getElementById('mm-consent-accept').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'accepted'); }catch(_){}
+    banner.hidden = true;
+    mmLoadAnalytics();
+  });
+  document.getElementById('mm-consent-decline').addEventListener('click', function(){
+    try{ localStorage.setItem(KEY, 'declined'); }catch(_){}
+    banner.hidden = true;
+  });
+})();
+</script>
+
+<header class="app-header">
+  <a class="hdr-brand" href="../index.html"><img class="hdr-logo" src="../assets/app-icon.png" alt="" width="28" height="28">Mound Metrics AI</a>
+  <nav class="hdr-nav">
+    <a href="../index.html">Tool</a>
+    <a href="index.html">Guides</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Guide</div>
+  <h1>How to Analyze a Pitcher's Delivery from Video (Without Guessing)</h1>
+
+  <p>You've got a video of a pitching delivery on your phone. Maybe it's your kid, maybe it's a player you're coaching. You've watched it ten times and you have a feeling something's a little off — but "a feeling" isn't much to work with.</p>
+  <p>Here's how to actually break the delivery down frame by frame, right in your browser, in a couple minutes. No account, no upload to some server, no app to install.</p>
+
+  <h2>What you actually need</h2>
+  <ul>
+    <li>A side-view video of the full delivery (.mp4 or .mov)</li>
+    <li>A phone, tablet, or laptop</li>
+    <li>A few minutes</li>
+  </ul>
+  <p>That's genuinely it.</p>
+
+  <h2>Step 1: Get the camera angle right</h2>
+  <p>This is the part people rush, and it's the part that matters most. Garbage angle in, garbage analysis out.</p>
+  <ul>
+    <li><strong>Shoot from the side</strong>, lined up along the first or third base line — not from behind the mound, not from behind the plate.</li>
+    <li><strong>Keep the whole body in frame</strong>, start to finish, including where the front foot lands. If a joint disappears off-screen, the tracking can't see it either.</li>
+    <li><strong>Use slow-mo if your phone has it.</strong> Most phones shoot 120 or 240fps now, and it makes a noticeable difference for catching the exact instant of foot plant or release.</li>
+    <li><strong>Brace the camera.</strong> Fence, tripod, railing, whatever — just don't hand-hold it. Shaky footage makes tracking sloppier.</li>
+  </ul>
+
+  <h2>Step 2: Drop in the video</h2>
+  <p>Upload the clip, plug in the pitcher's height and throwing hand (used to scale everything correctly), and pick an age range if you want — mechanics look pretty different on a 10-year-old versus an 18-year-old, so this helps put things in context.</p>
+  <p>Worth knowing: the video never leaves your device. It's all processed locally in the browser, so you're not uploading footage of a kid to some random server somewhere.</p>
+
+  <h2>Step 3: Hit Auto-detect</h2>
+  <p>Tap it, and the pose-tracking picks out four moments in the delivery on its own:</p>
+  <ol>
+    <li><strong>Reference stance</strong> — a calm, upright frame before leg lift starts. This sets the scale for everything else.</li>
+    <li><strong>Peak leg lift</strong> — front knee at its highest point.</li>
+    <li><strong>Foot plant</strong> — the frame the front foot touches down.</li>
+    <li><strong>Release</strong> — the exact frame the ball leaves the hand.</li>
+  </ol>
+
+  <h2>Step 4: Actually look at what it picked</h2>
+  <p>Don't skip this. The tracking is good, but it's reading one camera angle, and it can occasionally lose track of a joint — the throwing arm at release is the usual suspect, since it can get partially hidden behind the body. Scroll through the marked frames and eyeball whether the dots are actually sitting where the joints are. If one looks wrong, re-run Auto-detect or nudge it manually.</p>
+
+  <h2>Step 5: Read the report — with the right expectations</h2>
+  <p>Once those four moments are locked in, you get a report comparing the joint angles and ratios to general ranges pulled from pitching biomechanics research. Tap any number and it jumps you right to that spot in the video.</p>
+  <p>A few honest caveats here, because they matter:</p>
+  <ul>
+    <li>It's a 2D read from one angle, not a 3D motion-capture lab. Think of it as a conversation starter, not a verdict.</li>
+    <li>Falling outside a "typical" range doesn't mean something's wrong, and falling inside one doesn't mean everything's fine. Bodies, mobility, and pitch types all vary.</li>
+    <li>If you're worried about injury risk — elbow or shoulder stress especially — this is a good first look, but a pitching coach, athletic trainer, or sports medicine pro can give you a far more precise read than any video ever will.</li>
+  </ul>
+
+  <h2>Step 6: Save it and check back later</h2>
+  <p>You can save the analysis under the athlete's name, and everything — video, marked points, all of it — stays right there in your browser for next time. No re-marking from scratch. That makes it easy to film again in a few weeks and actually see whether specific numbers are moving, instead of just guessing whether things look "better."</p>
+
+  <h2>The honest bottom line</h2>
+  <p>The report is only as good as the video you feed it. A steady, well-lit, slow-motion side shot will give you a report you can trust. A shaky clip from across the field, less so. If a report ever looks off, check the footage before you second-guess the pitcher.</p>
+  <p class="muted">Mound Metrics AI is a free tool for frame-by-frame pitching delivery analysis, and it runs entirely in your browser — nothing gets uploaded. <a href="https://moundmetrics.app/">Try it here</a>, and take a look at the <a href="https://moundmetrics.app/disclaimer.html">medical disclaimer</a> before you dig in.</p>
+
+  <a class="next-read" href="late-arm-timing.html">
+    <span class="nr-eyebrow">Once you've got a report</span>
+    <span class="nr-title">One specific thing worth checking: late arm timing at foot plant</span>
+    <span class="nr-teaser">Why "late arm" is one of the most common flaws coaches flag — and how to spot it on the exact frame the app already marks for you.</span>
+  </a>
+
+  <a class="back" href="../index.html">← Back to the app</a>
+</div>
+
+</body>
+</html>

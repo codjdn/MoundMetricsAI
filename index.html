@@ -284,6 +284,19 @@ body.page-analysis #noticeBanner, body.page-drills #noticeBanner{ display:none; 
 .hdr-ws-only{ display:none !important; }
 body.mode-workspace .hdr-ws-only{ display:inline-flex !important; }
 
+/* site nav link (Guides) — lives in the right column on the landing view,
+   steps aside in workspace mode where the save status + Back button need the room */
+.hdr-guides{
+  display:inline-flex; align-items:center; gap:5px; text-decoration:none;
+  color:var(--navy); font-family:'Barlow Condensed',sans-serif; font-weight:600;
+  font-size:15px; letter-spacing:.06em; text-transform:uppercase;
+  padding:8px 14px; border-radius:99px; white-space:nowrap;
+  transition:background .15s ease, color .15s ease;
+}
+.hdr-guides:hover{ background:rgba(29,58,99,.1); color:var(--navy-deep); }
+body.mode-workspace .hdr-guides{ display:none; }
+@media (max-width:520px){ .hdr-guides{ padding:7px 10px; font-size:13px; letter-spacing:.03em; } }
+
 @media (max-width:720px){
   .app-header{ padding:0 12px; gap:8px; }
   .app-header .hdr-brand small{ display:none; }
@@ -690,6 +703,8 @@ canvas.busy{ opacity:.72; }
   font-size:15.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink);
 }
 .intro-steps .s-body{ font-size:12.5px; color:var(--muted); line-height:1.4; }
+.intro-steps .s-guide-link{ display:inline-block; margin-top:3px; font-size:12px; font-weight:600; color:var(--navy); text-decoration:none; }
+.intro-steps .s-guide-link:hover{ color:var(--navy-deep); text-decoration:underline; }
 .intro-actions{ display:flex; gap:10px; align-items:center; }
 .intro-actions .primary-btn{ flex:1; align-self:stretch; text-align:center; }
 .intro-skip{
@@ -1284,6 +1299,8 @@ canvas.busy{ opacity:.72; }
 .report-priorities.hidden{ display:none; }
 
 .metric-note{ font-size:12px; color:var(--muted); line-height:1.45; }
+.metric-guide-link{ display:inline-block; margin-top:7px; font-size:11.5px; font-weight:600; color:var(--navy); text-decoration:none; }
+.metric-guide-link:hover{ color:var(--navy-deep); text-decoration:underline; }
 
 .report-takeaway{
   background:var(--glass-grad); border:1px solid var(--line); border-left:3px solid var(--navy); border-right:3px solid var(--navy);
@@ -1740,6 +1757,7 @@ body::after{
   </div>
 
   <div class="hdr-right">
+    <a class="hdr-guides" href="guides/index.html">Guides</a>
     <span class="ws-save-status hdr-ws-only" id="saveStatus"></span>
     <button class="back-btn hdr-ws-only" id="backToUploadBtn" title="Choose another video" aria-label="Choose another video">← <span class="back-btn-label">Back</span></button>
   </div>
@@ -1754,7 +1772,7 @@ body::after{
 
   <!-- ============ FIRST-VISIT NOTICE ============ -->
   <div class="notice-banner hidden" id="noticeBanner">
-    <p><strong>Before you start:</strong> this tool gives estimates from video, not a medical or professional evaluation. Read the <a href="disclaimer.html">medical disclaimer</a>.</p>
+    <p><strong>Before you start:</strong> this tool gives estimates from video, not a medical or professional evaluation. Read the <a href="disclaimer.html">medical disclaimer</a>, or walk through the <a href="guides/getting-started.html">full getting-started guide</a> first.</p>
     <div class="notice-banner-actions">
       <button type="button" class="notice-dismiss-btn" id="noticeDismissBtn">Got it</button>
     </div>
@@ -1843,7 +1861,9 @@ body::after{
     <footer class="site-footer">
       <span>© <span id="footerYear"></span> Mound Metrics AI</span>
       <span class="dot">·</span>
-      <a href="guide.html">How it works</a>
+      <a href="guides/index.html">Guides</a>
+      <span class="dot">·</span>
+      <a href="guides/getting-started.html">How it works</a>
       <span class="dot">·</span>
       <a href="disclaimer.html">Medical disclaimer</a>
       <span class="dot">·</span>
@@ -1878,7 +1898,7 @@ body::after{
         <ol class="intro-steps">
           <li><span class="n" data-n="1">1</span><div><div class="s-title">Reference stance</div><div class="s-body">A still, upright frame before leg lift — sets the size scale.</div></div></li>
           <li><span class="n" data-n="2">2</span><div><div class="s-title">Peak leg lift</div><div class="s-body">Front knee at its highest point.</div></div></li>
-          <li><span class="n" data-n="3">3</span><div><div class="s-title">Foot plant</div><div class="s-body">The frame the front foot first touches down.</div></div></li>
+          <li><span class="n" data-n="3">3</span><div><div class="s-title">Foot plant</div><div class="s-body">The frame the front foot first touches down. <a class="s-guide-link" href="guides/late-arm-timing.html">Curious what to look for here? Read about late arm timing →</a></div></div></li>
           <li><span class="n" data-n="4">4</span><div><div class="s-title">Release</div><div class="s-body">The frame the ball leaves the hand.</div></div></li>
         </ol>
         <div class="intro-actions">
@@ -4882,6 +4902,8 @@ body::after{
       } else {
         note = 'Falls within the range commonly seen at foot plant for your age group — the throwing elbow sits close to shoulder height, a position often associated with the arm being "on time" for the rest of the delivery.';
       }
+      // This metric is where "late arm" timing shows up — link the deeper guide.
+      note += ' <a class="metric-guide-link" href="guides/late-arm-timing.html">What does this mean? →</a>';
       cards.push(card('Throwing elbow height at landing', m.elbowHeightFP, '%', 1, [-40,40], goodRange, good, note));
     });
 
