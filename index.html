@@ -1818,19 +1818,37 @@ body::after{
   -webkit-backdrop-filter:blur(3px);
   display:flex; align-items:center; justify-content:center; padding:22px;
 }
-.firstrun-card{ max-width:460px; }
+.firstrun-card{ max-width:440px; }
+.firstrun-card .intro-lead{ margin-bottom:16px; }
 .firstrun-check{
-  display:flex; gap:11px; align-items:flex-start;
+  display:flex; gap:12px; align-items:center;
   background:var(--well); border:1px solid var(--line); border-radius:var(--radius);
-  padding:12px 14px; margin-bottom:10px; cursor:pointer;
+  padding:13px 15px; margin-bottom:10px; cursor:pointer;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
-.firstrun-check.is-required{ border-left:3px solid var(--navy); }
+.firstrun-check:hover{ border-color:rgba(20,33,58,.30); }
+.firstrun-check:has(input:checked){
+  border-color:var(--navy); background:rgba(29,58,99,.06);
+  box-shadow:inset 0 0 0 1px var(--navy);
+}
 .firstrun-check input[type=checkbox]{
-  flex:none; width:18px; height:18px; margin-top:1px; accent-color:var(--navy); cursor:pointer;
+  flex:none; width:19px; height:19px; accent-color:var(--navy); cursor:pointer;
 }
-.firstrun-check .fc-label{ font-size:13px; color:var(--ink); font-weight:600; line-height:1.35; }
-.firstrun-check .fc-sub{ display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:3px; }
-.firstrun-check .fc-req{ color:var(--flag); }
+.firstrun-check .fc-label{ font-size:13px; color:var(--ink); font-weight:600; line-height:1.4; }
+.firstrun-check .fc-sub{ display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:4px; line-height:1.45; }
+.firstrun-check .fc-req{
+  display:inline-block; margin-left:7px; padding:1px 8px; border-radius:99px; vertical-align:middle;
+  background:rgba(168,91,0,.12); color:var(--flag);
+  font-family:'Barlow Condensed',sans-serif; font-size:10.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+}
+/* disabled primary button should read as "not yet available", not broken:
+   flat muted fill instead of the faded navy gradient */
+#firstRunContinueBtn{ margin-top:4px; }
+#firstRunContinueBtn:disabled{
+  opacity:1; background:var(--well); color:var(--muted);
+  box-shadow:inset 0 0 0 1px var(--line); cursor:not-allowed;
+}
 </style>
 </head>
 <body>
@@ -1901,8 +1919,8 @@ body::after{
       <!-- Item 1: required — acknowledging safe use gates the button below -->
       <label class="firstrun-check is-required" for="firstRunAckCheck">
         <input type="checkbox" id="firstRunAckCheck">
-        <span class="fc-label">I understand these are estimates from video, not medical or professional advice.
-          <span class="fc-sub"><span class="fc-req">Required</span> — this is about safe use of the tool, not data collection.</span>
+        <span class="fc-label">I understand these are estimates from video, not medical or professional advice.<span class="fc-req">Required</span>
+          <span class="fc-sub">This is about safe use of the tool, not data collection.</span>
         </span>
       </label>
 
