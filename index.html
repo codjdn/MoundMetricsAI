@@ -4160,6 +4160,30 @@ body::after{
       return w.length ? w.reduce((a,b) => a + b, 0) / w.length : null;
     });
 
+    // Blur-tolerant read for the FAST limbs (throwing wrist, stride ankle). A
+    // limb that whips or strides motion-blurs, and MediaPipe hands it back with
+    // low visibility but usually near the right place. The plain v>0.2 gate
+    // throws those away, punching a hole in the release / plant speed signals at
+    // the very instant the limb is moving fastest — exactly where we measure.
+    // Instead, keep a low-vis reading (down to LOW_VIS) when it is anatomically
+    // plausible: within LIMB_REACH (aspect-corrected, normalized) of a confident
+    // parent joint (wrist↔elbow, ankle↔knee). A teleported glitch lands far from
+    // its parent and is still rejected; the net2 / smooth3 / max-of-both-wrists
+    // filters keep guarding on top. This only ADDS samples the hard gate dropped,
+    // so blurred limbs still register instead of vanishing.
+    const LOW_VIS = 0.1;
+    const LIMB_REACH = 0.3;
+    const visBlur = (lm, idx, parIdx, maxReach) => {
+      if(!lm || !lm[idx]) return null;
+      const p = lm[idx];
+      if(p.v > 0.2) return p;                 // confident — normal gate
+      if(p.v <= LOW_VIS) return null;         // too weak even for blur recovery
+      const par = lm[parIdx];
+      if(!par || par.v <= 0.2) return null;   // no confident anchor to check against
+      const d = Math.hypot((p.x - par.x) * AR, p.y - par.y);
+      return (d <= maxReach) ? p : null;      // plausible distance → keep the blur
+    };
+
     // The delivery is detected by anchoring on the ONE unmistakable event and
     // working outward from it. Earlier versions picked each phase with its own
     // independent global search, which fell apart on real clips: a long clip can
@@ -4194,14 +4218,15 @@ body::after{
     // views, so the handedness-picked wrist can silently be the glove hand.
     // At the whip only the throwing hand moves that fast, so the max is safe —
     // and a label flip mid-step reads as out-and-back, which net2 suppresses.
-    const stepVecs = (arr, idx) => arr.map((s, i) => {
+    const stepVecs = (arr, idx, parIdx) => arr.map((s, i) => {
       if(i === 0) return null;
-      const w0 = vis(arr[i-1].lm, idx), w1 = vis(s.lm, idx);
+      const w0 = visBlur(arr[i-1].lm, idx, parIdx, LIMB_REACH);
+      const w1 = visBlur(s.lm, idx, parIdx, LIMB_REACH);
       return (w0 && w1) ? { x:(w1.x - w0.x) * AR, y: w1.y - w0.y } : null;
     });
     const whipSpd = (arr) => {
-      const a = net2(stepVecs(arr, MP.L_WR));
-      const b = net2(stepVecs(arr, MP.R_WR));
+      const a = net2(stepVecs(arr, MP.L_WR, MP.L_EL));
+      const b = net2(stepVecs(arr, MP.R_WR, MP.R_EL));
       return smooth3(a.map((v, i) => {
         const w = b[i];
         return (v == null) ? w : (w == null ? v : Math.max(v, w));
@@ -4250,7 +4275,12 @@ body::after{
     // last frame the stride ankle is still moving before release; contact is the
     // next frame. Total (x,y) motion also catches a near-horizontal stride that
     // a height-only signal misses.
-    const ankPtOf = (lm, idx) => { const a = vis(lm, idx); return a ? a : null; };
+    // Blur-tolerant read for the stride ankle (fast through the stride, often
+    // motion-blurred); sanity-check its position against the same-side knee.
+    const ankPtOf = (lm, idx) => {
+      const parIdx = (idx === MP.L_ANK) ? MP.L_KNEE : MP.R_KNEE;
+      return visBlur(lm, idx, parIdx, LIMB_REACH);
+    };
     const lLift = ankPtOf(samples[legliftIdx].lm, MP.L_ANK);
     const rLift = ankPtOf(samples[legliftIdx].lm, MP.R_ANK);
     let strideAnkIdx = MP.L_ANK;                                  // default front for a RHP
@@ -4309,9 +4339,12 @@ body::after{
       return arr;
     }
     try {
-      // RELEASE — the ball leaves as the wrist whips up to top speed. Find the
-      // fine speed peak, then take the frame where speed first reaches 95% of it
-      // on the way up (the steep release ramp, a hair before peak speed).
+      // RELEASE — the ball leaves at the wrist's peak forward ACCELERATION: the
+      // steepest rise in whip speed on the way UP to top speed, a frame or two
+      // before the wrist reaches its peak SPEED. Mirror the coarse pass here at
+      // fine resolution. The old rule (first frame at 95% of peak speed) sat
+      // essentially AT peak speed and, with the +1 nudge on top, landed release
+      // a hair late; peak acceleration is the instant the hand is whipped through.
       autoDetectLabel.textContent = 'Refining…';
       const fr = await fineSamples(samples[releaseIdx].t, step * 1.1);
       // Same glitch-proof, label-agnostic whip signal as the coarse pass.
@@ -4319,10 +4352,12 @@ body::after{
       let fpk = -1, fpv = -Infinity;
       for(let k = 1; k < fr.length; k++){ if(frSp[k] != null && frSp[k] > fpv){ fpv = frSp[k]; fpk = k; } }
       if(fpk > 0 && fpv > 0){
-        const cut = 0.95 * fpv;
-        for(let k = 1; k <= fpk; k++){
-          if(frSp[k] != null && frSp[k] >= cut && fr[k].lm){ refined.release = fr[k]; break; }
+        let bestA = -Infinity, relK = -1;
+        for(let k = 2; k <= fpk; k++){
+          const a = frSp[k], b = frSp[k-1];
+          if(a != null && b != null && (a - b) > bestA && fr[k].lm){ bestA = a - b; relK = k; }
         }
+        if(relK > 0) refined.release = fr[relK];
       }
 
       // FOOT PLANT — the stride ankle stops moving. Scan a window at fine
@@ -4369,9 +4404,10 @@ body::after{
 
 
     // Commit each phase from its chosen sample, preferring a fine-refined frame
-    // when we have one, nudged ONE native frame later — the pose-based picks
-    // land a frame early, so we step to the next frame and re-detect the body
-    // there so the stored joints match the committed timestamp.
+    // when we have one, then re-detecting the body at the committed timestamp so
+    // the stored joints match. Most phases' pose signals land a frame early, so
+    // they step ONE native frame later first (see the per-phase nudge below);
+    // release is the exception — its wrist-whip signal already sits at release.
     const picks = { reference:referenceIdx, leglift:legliftIdx, footplant:footplantIdx, release:releaseIdx };
     const frameNudge = videoFrameDur || (1/30);
     // Detect the body at targetT cleanly. A lone seek+detect leaves MediaPipe's
@@ -4394,17 +4430,25 @@ body::after{
     }
 
     // Build the final frame for each phase: fine-refined when available,
-    // coarse otherwise, then step one native frame later and re-detect there.
+    // coarse otherwise, then step forward (except release) and re-detect there.
     autoDetectLabel.textContent = 'Locking frames…';
     const finals = {};
     for(const phase of PHASE_ORDER){
       const base = refined[phase] || samples[picks[phase]];
       if(!base) continue;
-      // Foot plant is exempt from the nudge: its walk-back already commits
-      // the contact frame itself, so stepping a frame later — right for the
-      // other phases, whose signals lag an extra frame — read as a late landing.
-      const nudge = (phase === 'footplant') ? 0 : frameNudge;
-      const targetT = Math.min((video.duration || base.t + nudge) - 0.001, base.t + nudge);
+      // Release is exempt from the forward nudge: its signal is the wrist whip,
+      // whose speed peaks AT or just after the ball is gone, so stepping a frame
+      // later read as a late release. Every other phase's pose signal lags a
+      // frame and steps one native frame forward — INCLUDING foot plant, whose
+      // walk-back stops on the last still-moving frame; the nudge advances it to
+      // the settled contact frame, which was otherwise landing a touch early.
+      const nudge = (phase === 'release') ? 0 : frameNudge;
+      let targetT = Math.min((video.duration || base.t + nudge) - 0.001, base.t + nudge);
+      // Keep foot plant strictly before release even after the forward nudge.
+      if(phase === 'footplant'){
+        const relBase = refined.release || samples[picks.release];
+        if(relBase) targetT = Math.min(targetT, relBase.t - frameNudge);
+      }
       const lm = await detectPrimed(targetT);
       if(lm)              finals[phase] = { t: targetT, lm: lm };
       else if(base.lm)    finals[phase] = { t: base.t,  lm: base.lm };
