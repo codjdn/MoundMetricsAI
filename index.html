@@ -2596,6 +2596,8 @@ body::after{
   const procFill     = document.getElementById('procFill');
   const procError    = document.getElementById('procError');
   const procSpinner  = document.getElementById('procSpinner');
+  const procSub      = document.getElementById('procSub');
+  const procSubDefault = procSub ? procSub.textContent : '';
   const procBackBtn  = document.getElementById('procBackBtn');
 
   const canvas = document.getElementById('canvas');
@@ -3210,9 +3212,29 @@ body::after{
         try{ videoFrameDur = await measureFrameDur(); }catch(_){ videoFrameDur = 1/30; }
       }
       setProgress(8, 'Warming up…');
-      startProgressTrickle('Loading the pose model…');
-      await ensurePoseReady();
+      // The pose model is a ~16 MB one-time download; after that the browser
+      // caches it and load is near-instant. Tell first-time visitors what the
+      // wait is (a big reason phones "feel stuck" here) and reassure them if
+      // the download runs long, instead of a bare "Starting…".
+      const modelCached = mmModelCached();
+      startProgressTrickle(modelCached ? 'Loading the pose model…' : 'Downloading the pose model…', !modelCached);
+      if(!modelCached && procSub){
+        procSub.textContent = 'First run only: the pose AI (~16 MB) downloads once to your device, then it’s cached for next time. Your video is never uploaded — detection runs locally.';
+      }
+      // Elapsed-time reassurance so a long first download never looks frozen.
+      const reassure = [];
+      if(!modelCached){
+        reassure.push(setTimeout(() => { procStatus.textContent = 'Still downloading — one-time step, depends on your connection…'; }, 9000));
+        reassure.push(setTimeout(() => { procStatus.textContent = 'Almost there — finishing the one-time model download…'; }, 20000));
+      }
+      try{
+        await ensurePoseReady();
+      }finally{
+        reassure.forEach(clearTimeout);
+      }
+      mmMarkModelCached();
       stopProgressTrickle();
+      if(procSub) procSub.textContent = procSubDefault;
       setProgress(100, 'Ready');
 
       state.detected = true;
@@ -3360,18 +3382,32 @@ body::after{
     if(text != null) procStatus.textContent = text;
   }
 
+  // Remember (best-effort) that the model has loaded once in this browser, so
+  // we can show "Downloading… (~16 MB, one time)" only on the genuine first run
+  // and a quick "Loading…" afterward. The browser's HTTP cache is the real
+  // source of truth for the bytes; this flag just drives the messaging.
+  const MODEL_CACHE_KEY = 'mm_model_loaded_v1';
+  function mmModelCached(){
+    try{ return localStorage.getItem(MODEL_CACHE_KEY) === '1'; }catch(_){ return false; }
+  }
+  function mmMarkModelCached(){
+    try{ localStorage.setItem(MODEL_CACHE_KEY, '1'); }catch(_){}
+  }
+
   // The pose model load doesn't report granular progress, so we ease the bar
   // upward on its own toward a ceiling (never quite 100) to show real motion.
   // It decelerates as it climbs so a slow download still feels alive without
-  // ever pretending to be done — stopProgressTrickle() snaps it to 100.
-  function startProgressTrickle(text){
+  // ever pretending to be done — stopProgressTrickle() snaps it to 100. On a
+  // first run (slow=true) it climbs more gently, matching the longer download.
+  function startProgressTrickle(text, slow){
     if(text != null) procStatus.textContent = text;
     stopProgressTrickle();
+    const rate = slow ? 0.03 : 0.06;
     progressTrickle = setInterval(() => {
       const ceiling = 92;
       if(progressShown >= ceiling){ return; }
       // Bigger steps early, smaller as we approach the ceiling.
-      const step = Math.max(0.4, (ceiling - progressShown) * 0.06);
+      const step = Math.max(0.3, (ceiling - progressShown) * rate);
       setProgress(progressShown + step);
     }, 90);
   }
@@ -3381,6 +3417,7 @@ body::after{
 
   function showProcessingError(err){
     stopProgressTrickle();
+    if(procSub) procSub.textContent = procSubDefault;
     procSpinner.style.display = 'none';
     setProgress(0, 'Couldn\u2019t finish detection');
     let msg;
