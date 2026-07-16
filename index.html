@@ -257,6 +257,15 @@ button{ font-family:inherit; }
 .hero h1 img{ display:block; width:min(500px,90vw); height:auto; }
 .hero .pitch{ color:var(--ink); max-width:60ch; font-size:17px; line-height:1.5; font-weight:500; margin-bottom:12px; }
 .hero .pitch strong{ color:var(--navy); font-weight:700; }
+.hero-badges{ list-style:none; display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.hero-badges li{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:600;
+  font-size:13px; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--navy); background:var(--well-grad);
+  border:1px solid var(--line); border-radius:99px; padding:6px 12px;
+}
+.hero-badges svg{ width:14px; height:14px; color:var(--good); flex:none; }
 .hero .sub{ color:var(--muted); max-width:66ch; font-size:15px; }
 body.mode-workspace .hero,
 body.page-analysis .hero, body.page-drills .hero{ display:none; }
@@ -1652,7 +1661,8 @@ body::after{
 @keyframes riseIn{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
 .hero .eyebrow{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) backwards; }
 .hero .pitch{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .11s backwards; }
-.hero .sub{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .16s backwards; }
+.hero-badges{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .15s backwards; }
+.hero .sub{ animation:riseIn .5s cubic-bezier(.2,.7,.3,1) .2s backwards; }
 .hero h1{ animation:riseIn .55s cubic-bezier(.2,.7,.3,1) .06s backwards; }
 .brand-ai{
   background:linear-gradient(115deg, var(--red) 20%, #E2314F 80%);
@@ -1662,7 +1672,7 @@ body::after{
 @keyframes seamGrow{ from{ width:0; } to{ width:96px; } }
 .hero::after{ animation:seamGrow .7s cubic-bezier(.2,.7,.3,1) .25s backwards; }
 @media (prefers-reduced-motion: reduce){
-  .hero .eyebrow, .hero .pitch, .hero .sub, .hero h1, .hero::after{ animation:none; }
+  .hero .eyebrow, .hero .pitch, .hero-badges, .hero .sub, .hero h1, .hero::after{ animation:none; }
 }
 @media print{ .hero h1, .brand-ai{ -webkit-background-clip:initial; background-clip:initial; background:none; color:#14213A; } }
 
@@ -1876,6 +1886,14 @@ body::after{
     <h1><img src="assets/logo.png" alt="Mound Metrics AI" width="1464" height="300"></h1>
     <!-- Value-prop hero (≤60 words): what → privacy → cost → who -->
     <p class="pitch">Frame-by-frame analysis of a pitcher's delivery from one side-view phone video. <strong>The video never leaves your device</strong> — the pose AI runs entirely in your browser. It surfaces the kind of feedback that once meant a <strong>$10,000+ motion-capture lab</strong> or an in-person biomechanics session — <strong>free and instant</strong>. Made for youth and high-school pitchers, parents, and coaches without a lab.</p>
+    <!-- Positioning: competitors in this space are paid/subscription; state the
+         free, no-account differentiator plainly. (Present-tense true — see the
+         privacy policy's "No accounts, no login" section.) -->
+    <ul class="hero-badges" aria-label="How it's different">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Free — no account required</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>No subscription</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Nothing to install</li>
+    </ul>
     <!-- TESTIMONIALS PLACEHOLDER — drop real coach / parent / pitcher quotes here
          once we have permission to use them. Do NOT fabricate quotes, star
          ratings, or usage numbers. -->
