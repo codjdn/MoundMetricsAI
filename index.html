@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) — only loads after the visitor accepts analytics in the consent banner below -->
+  <!-- Google tag (gtag.js) — only loads after the visitor opts in via the
+       first-run "Before you start" modal (or a stored opt-in from a prior visit).
+       Never runs before that choice is made. -->
   <script>
     function mmLoadAnalytics(){
       if (window.gtag) return;
@@ -1808,49 +1810,34 @@ body::after{
 }
 @media print{ .beckon-ping, .ink-ripple-wrap{ display:none !important; } }
 
-.mm-consent-banner{
-  position:fixed; left:0; right:0; bottom:0; z-index:9999;
-  background:linear-gradient(165deg, rgba(21,44,76,.96), rgba(20,33,58,.96));
-  backdrop-filter:blur(10px); border-top:2px solid var(--red);
-  padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
-  gap:14px; color:#fff; font-size:14px; text-align:center;
+/* first-run "Before you start" modal — required medical-disclaimer ack +
+   optional anonymous-analytics opt-in, on a single screen */
+.firstrun-scrim{
+  position:fixed; inset:0; z-index:9998;
+  background:rgba(20,33,58,.55); backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; padding:22px;
 }
-.mm-consent-banner p{ margin:0; max-width:640px; }
-.mm-consent-banner button{
-  border-radius:20px; padding:8px 18px; font-weight:600; font-size:13px; cursor:pointer;
-  border:1.5px solid rgba(255,255,255,.7); background:transparent; color:#fff;
+.firstrun-card{ max-width:460px; }
+.firstrun-check{
+  display:flex; gap:11px; align-items:flex-start;
+  background:var(--well); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; margin-bottom:10px; cursor:pointer;
 }
-.mm-consent-banner button#mm-consent-accept{ background:var(--navy); border-color:var(--navy); }
-.mm-consent-banner[hidden]{ display:none; }
+.firstrun-check.is-required{ border-left:3px solid var(--navy); }
+.firstrun-check input[type=checkbox]{
+  flex:none; width:18px; height:18px; margin-top:1px; accent-color:var(--navy); cursor:pointer;
+}
+.firstrun-check .fc-label{ font-size:13px; color:var(--ink); font-weight:600; line-height:1.35; }
+.firstrun-check .fc-sub{ display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:3px; }
+.firstrun-check .fc-req{ color:var(--flag); }
 </style>
 </head>
 <body>
 
-<div id="mm-consent-banner" class="mm-consent-banner" hidden>
-  <p>We use analytics to count page visits. Your video and analysis data never leave your device.</p>
-  <div>
-    <button id="mm-consent-accept" type="button">Accept analytics</button>
-    <button id="mm-consent-decline" type="button">Decline</button>
-  </div>
-</div>
-<script>
-(function(){
-  var KEY = 'mm-analytics-consent';
-  var banner = document.getElementById('mm-consent-banner');
-  try{
-    if (!localStorage.getItem(KEY)) banner.hidden = false;
-  }catch(_){}
-  document.getElementById('mm-consent-accept').addEventListener('click', function(){
-    try{ localStorage.setItem(KEY, 'accepted'); }catch(_){}
-    banner.hidden = true;
-    mmLoadAnalytics();
-  });
-  document.getElementById('mm-consent-decline').addEventListener('click', function(){
-    try{ localStorage.setItem(KEY, 'declined'); }catch(_){}
-    banner.hidden = true;
-  });
-})();
-</script>
+<!-- Analytics consent is collected once, on the first-run "Before you start"
+     modal below (see #firstRunScrim), so this page keeps a single first-run
+     popup instead of a separate bottom consent bar. -->
 
 <!-- ============ GLOBAL HEADER (brand + centered tabs) ============ -->
 <!-- Lives OUTSIDE .app so it spans the full viewport width always -->
@@ -1900,11 +1887,36 @@ body::after{
     <p class="sub">Upload a side-view pitching video and the built-in pose AI tracks the pitcher's joints in real time as you play it back. Tap "Auto-detect" and the AI finds each key moment of the delivery for you — reference stance, peak leg lift, foot plant, and release — then the app compares the resulting angles and ratios to general ranges from pitching biomechanics research.</p>
   </header>
 
-  <!-- ============ FIRST-VISIT NOTICE ============ -->
-  <div class="notice-banner hidden" id="noticeBanner">
-    <p><strong>Before you start:</strong> this tool gives estimates from video, not a medical or professional evaluation. Read the <a href="disclaimer.html">medical disclaimer</a>, or walk through the <a href="guides/getting-started.html">full getting-started guide</a> first.</p>
-    <div class="notice-banner-actions">
-      <button type="button" class="notice-dismiss-btn" id="noticeDismissBtn">Got it</button>
+  <!-- ============ FIRST-RUN "BEFORE YOU START" MODAL ============ -->
+  <!-- One screen, two independent items:
+         1. Required medical-disclaimer acknowledgment — gates the primary button.
+         2. Optional anonymous-analytics opt-in — defaults OFF, never gates.
+       Shown once, then remembered in localStorage (mm_notice_ack_v1). -->
+  <div class="firstrun-scrim hidden" id="firstRunScrim">
+    <div class="intro-card firstrun-card" role="dialog" aria-modal="true" aria-labelledby="firstRunTitle" aria-describedby="firstRunLead">
+      <div class="intro-eyebrow">Before you start</div>
+      <h3 id="firstRunTitle">Estimates from video — not a medical evaluation</h3>
+      <p class="intro-lead" id="firstRunLead">This tool gives estimates from a phone video, not a medical or professional evaluation. Read the <a href="disclaimer.html">medical disclaimer</a>, or walk through the <a href="guides/getting-started.html">full getting-started guide</a> first.</p>
+
+      <!-- Item 1: required — acknowledging safe use gates the button below -->
+      <label class="firstrun-check is-required" for="firstRunAckCheck">
+        <input type="checkbox" id="firstRunAckCheck">
+        <span class="fc-label">I understand these are estimates from video, not medical or professional advice.
+          <span class="fc-sub"><span class="fc-req">Required</span> — this is about safe use of the tool, not data collection.</span>
+        </span>
+      </label>
+
+      <!-- Item 2: optional — analytics opt-in, defaults unchecked, does NOT gate -->
+      <label class="firstrun-check" for="firstRunAnalyticsCheck">
+        <input type="checkbox" id="firstRunAnalyticsCheck">
+        <span class="fc-label">Help us improve — share anonymous usage analytics.
+          <span class="fc-sub">Optional. Counts anonymous page visits only. Your video and analysis never leave your device. You can continue with this left unchecked.</span>
+        </span>
+      </label>
+
+      <div class="intro-actions">
+        <button class="primary-btn" id="firstRunContinueBtn" disabled>Save &amp; Continue</button>
+      </div>
     </div>
   </div>
 
@@ -2363,22 +2375,54 @@ body::after{
 (function(){
   "use strict";
 
-  /* ---- first-visit disclaimer banner + footer year (independent of app state) ---- */
+  /* ---- first-run "Before you start" modal + footer year (independent of app state) ----
+     Two independent choices on one screen:
+       • ACK_KEY (required) — medical-disclaimer acknowledgment; gates the button.
+       • ANALYTICS_KEY (optional) — 'accepted' | 'declined'; the ONLY thing that
+         controls whether gtag ever loads (see the loader in <head>). Defaults to
+         unchecked, so analytics never fires until the visitor deliberately opts in. */
   try{
     var footerYearEl = document.getElementById('footerYear');
     if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
 
-    var noticeBanner = document.getElementById('noticeBanner');
-    var noticeDismissBtn = document.getElementById('noticeDismissBtn');
-    var NOTICE_KEY = 'mm_notice_ack_v1';
-    if (noticeBanner && !localStorage.getItem(NOTICE_KEY)) {
-      noticeBanner.classList.remove('hidden');
-    }
-    if (noticeDismissBtn) {
-      noticeDismissBtn.addEventListener('click', function(){
-        try{ localStorage.setItem(NOTICE_KEY, '1'); }catch(_){}
-        noticeBanner.classList.add('hidden');
+    var ACK_KEY = 'mm_notice_ack_v1';           // required disclaimer acknowledgment
+    var ANALYTICS_KEY = 'mm-analytics-consent'; // analytics opt-in: 'accepted' | 'declined'
+
+    var frScrim    = document.getElementById('firstRunScrim');
+    var frAck       = document.getElementById('firstRunAckCheck');
+    var frAnalytics = document.getElementById('firstRunAnalyticsCheck');
+    var frContinue  = document.getElementById('firstRunContinueBtn');
+
+    // Show only on the very first run, before a choice has been stored. Once the
+    // disclaimer is acknowledged we never re-show the modal.
+    var alreadyAcked = false;
+    try{ alreadyAcked = !!localStorage.getItem(ACK_KEY); }catch(_){}
+
+    if (frScrim && frAck && frAnalytics && frContinue && !alreadyAcked) {
+      // Explicit safe defaults: both boxes unchecked, button disabled.
+      frAck.checked = false;
+      frAnalytics.checked = false;
+      frContinue.disabled = true;
+
+      // The button is gated ONLY by the required disclaimer item. The analytics
+      // checkbox is intentionally left out of this — the user must be able to
+      // proceed with it unchecked.
+      var syncGate = function(){ frContinue.disabled = !frAck.checked; };
+      frAck.addEventListener('change', syncGate);
+
+      frContinue.addEventListener('click', function(){
+        if (frContinue.disabled) return; // guard: disclaimer not yet acknowledged
+        try{ localStorage.setItem(ACK_KEY, '1'); }catch(_){}
+        var optedIn = !!frAnalytics.checked;
+        // Persist the analytics choice so we don't ask again next session.
+        try{ localStorage.setItem(ANALYTICS_KEY, optedIn ? 'accepted' : 'declined'); }catch(_){}
+        // Start analytics now only if opted in; otherwise it stays off entirely.
+        if (optedIn && typeof mmLoadAnalytics === 'function') mmLoadAnalytics();
+        frScrim.classList.add('hidden');
       });
+
+      frScrim.classList.remove('hidden');
+      try{ frAck.focus(); }catch(_){}
     }
   }catch(_){}
 
