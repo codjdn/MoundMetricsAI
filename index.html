@@ -33,7 +33,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mound Metrics AI — Delivery Analysis</title>
 <meta name="description" content="Upload a side-view pitching video and get frame-by-frame delivery mechanics feedback. Runs entirely in your browser — video is never uploaded.">
+<link rel="icon" type="image/png" sizes="96x96" href="assets/favicon-96.png">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png">
+<link rel="shortcut icon" href="assets/favicon-96.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
 <!-- Social sharing card -->
@@ -44,6 +47,36 @@
 <meta property="og:url" content="https://moundmetrics.app/">
 <meta property="og:image" content="https://moundmetrics.app/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
+
+<!-- Structured data: tells Google the brand name + logo so it can show the
+     logo next to the site name in search results -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://moundmetrics.app/#organization",
+      "name": "Mound Metrics AI",
+      "url": "https://moundmetrics.app/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://moundmetrics.app/assets/app-icon.png",
+        "width": 480,
+        "height": 480
+      },
+      "image": "https://moundmetrics.app/assets/og-image.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://moundmetrics.app/#website",
+      "name": "Mound Metrics AI",
+      "url": "https://moundmetrics.app/",
+      "publisher": { "@id": "https://moundmetrics.app/#organization" }
+    }
+  ]
+}
+</script>
 
 <!--
   HOW TO RUN LOCALLY
